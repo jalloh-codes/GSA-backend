@@ -19,11 +19,11 @@ const postSchema = new Schema({
         {
             user:{
              type:   Schema.Types.ObjectId,
-             ref: "User"
+             ref: "user",
+             require: true
             },
             text:{
                 type: String,
-                require: true
             },
             date:{
                 type: Date,
@@ -35,11 +35,8 @@ const postSchema = new Schema({
         {
             user:{
                 type: Schema.Types.ObjectId,
-                ref: "User",
+                ref: "user",
                 require: true
-            },
-            times:{
-                type: Number
             },
             date:{
                 type: Date,
