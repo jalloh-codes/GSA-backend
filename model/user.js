@@ -1,7 +1,7 @@
 const mongoose = require ('mongoose');
-const schema = mongoose.schema;
+const schema = mongoose.Schema;
 
-const userSchema = new mongoose({
+const userSchema = new schema({
    firstname : {
      type: String,
      require : true
@@ -21,13 +21,11 @@ const userSchema = new mongoose({
    },
 
    role : {
-       type: String,
-       require : false
+       type: String
    },
 
    interest : {
-       type : String,
-       require : false
+       type : [String]
    }
 
 })
