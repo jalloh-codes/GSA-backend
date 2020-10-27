@@ -1,40 +1,58 @@
 const {buildSchema } = require('graphql')
 
 module.exports = buildSchema(`
+    type Account{
+        email: String!
+        password: String!
+    }
     type User{
         _id: ID!
+        account: Account!
         firstname: String!
         lastname: String!
-        post: PostText!
-        interest: [String!]!
+        school: String!
+        major: String!
+        role: String
+        interest: [String]
     }
+
     type PostText{
         _id: ID!
         text: String!
-        likes: [User!]!
+        likes: [Account!]!
         date: String!
     }
     type Comment{
         _id: ID!
         post: PostText!
         text: String!
-        byUser: User!
-        likes: [User!]!
+        byUser: Account!
+        likes: [Account!]!
         date: String
     }
     type PostImage {
         _id: ID!
         imageAlbum: [String!]!
-        commnets: [User!]!
-        likes: [User!]!
+        commnets: [Account!]!
+        likes: [Account!]!
         date: String!
     }
 
+    input AccountInput{
+        email: String!
+        password: String!
+    }
+
     input UserInput{
+        account: Account!
         firstname: String!
         lastname: String!
-        interest: [String!]!
+        school: String!
+        major: String
+        role: String
+        interest: [String]
     }
+
     input PostTextInput {
         owner: ID!
         text: String!
@@ -59,6 +77,7 @@ module.exports = buildSchema(`
         createCommnet(commentInput: CommentInput): Comment
         createPostImage(postImage: PostImageInput!): PostImage
         createUser(userInput: UserInput): User
+        createAccount(accountInput: AccountInput): Account
     }
     schema{
         query: RootQuery

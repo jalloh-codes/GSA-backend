@@ -6,7 +6,7 @@ const Schema = mongoose.Schema
 const postTextSchema = new Schema({
     owner: {
         type: Schema.Types.ObjectId,
-        ref: "User"
+        ref: "Account"
     },
     text:{
         type: String
@@ -14,13 +14,13 @@ const postTextSchema = new Schema({
     commnets:[
         {
             type:   Schema.Types.ObjectId,
-            ref: "User",
+            ref: "Account",
         }
     ],
     likes: [
         {
             type: Schema.Types.ObjectId,
-            ref: "User",
+            ref: "Account",
         }
     ],
     date:{
