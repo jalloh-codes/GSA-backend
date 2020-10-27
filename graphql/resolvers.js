@@ -1,7 +1,7 @@
 const User = require('../model/User');
 const PostText = require('../model/postText');
 const Comments = require('../model/comment');
-
+const Account = require('../model/account.js')
 
 const posts = async owner =>{
     try {
@@ -39,9 +39,9 @@ const comments =  async owner =>{
     }
 }
 
-const user = async userId =>{
+const user = async email =>{
     try {
-        const user = await User.findOne({_id: userId})
+        const user = await User.findOne({email: email})
             return{
             ...user._doc,
             _id: user.id
@@ -96,7 +96,7 @@ module.exports = {
 
     createUser: async (args) =>{
         try {
-            const existingUser =  await User.findOne({username: args.userInput.username})
+            const existingUser =  await User.findOne({email: args.userInput.email})
             if(existingUser){
                 throw new Error("User already existed")
             }

@@ -11,12 +11,12 @@ const commnetSchema = new Schema({
     },
     byUser:{
         type:   Schema.Types.ObjectId,
-        ref: "User",
+        ref: "Account",
     },
     likes: [
         {
             type: Schema.Types.ObjectId,
-            ref: "User",
+            ref: "Account",
         }
     ],
     date:{

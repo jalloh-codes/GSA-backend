@@ -4,13 +4,7 @@
   "description": "",
   "main": "app.js",
   "dependencies": {
-<<<<<<< HEAD
     "express": "^4.17.1",
-=======
-    "body-parser": "^1.19.0",
-    "express": "^4.17.1",
-    "express-graphql": "^0.11.0",
->>>>>>> 39cd2cf8990ad2dda69d6e239469637222a20375
     "graphql": "^15.3.0",
     "mongodb": "^3.6.2",
     "mongoose": "^5.10.5"
@@ -19,12 +13,8 @@
     "nodemon": "^2.0.4"
   },
   "scripts": {
-<<<<<<< HEAD
-    "test": "echo \"Error: no test specified\" && exit 1"
-=======
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon app.js"
->>>>>>> 39cd2cf8990ad2dda69d6e239469637222a20375
   },
   "repository": {
     "type": "git",

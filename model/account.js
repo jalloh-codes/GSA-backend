@@ -8,13 +8,11 @@ const AccountSchema = new mongoose.Schema({
         trim: true,
         required : true,
     },
-
     password:{
         type: String,
         required: true,
         trim: true,
     },
-
     date:{
         type: Date,
         default: Date.now

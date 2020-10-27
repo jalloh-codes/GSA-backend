@@ -18,19 +18,15 @@ const UserSchema = new Schema({
            type: String,
            require: true
       },
-   
       major :{
           type: String,
           require : true
       },
-   
       role : {
           type: String
       },
-   
-      interest : {
-          type : [String]
-      }
+      interest : [{type:String}]
+      
 })
 
 module.exports = User = mongoose.model('User', UserSchema)
