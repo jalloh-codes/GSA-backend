@@ -2,11 +2,11 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema
 
 const postImageSchema = new Schema({
-    imageAlbum:[{
-        image:{
-        type: Buffer
+    imageAlbum:[
+        {
+            type: String
         }
-    }],
+    ],
     commnets:[
         {
             type:   Schema.Types.ObjectId,

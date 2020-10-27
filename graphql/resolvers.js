@@ -3,19 +3,51 @@ const PostText = require('../model/postText');
 const Comments = require('../model/comment');
 
 
-const getAllPost = async postID =>{
-    
+const posts = async owner =>{
     try {
-        const getAllPost = await PostText.find({_id: postID})
-        console.log(getAllPost);
-        return{
-            ...getAllPost._doc,
-            _id: getAllPost.id,
-            
+        const posts = await PostText.find({owner: owner})
+        return posts.map(post =>{
+            return{
+                ...post._doc,
+                _id: post.id,
+                date: new Date(post._doc.date).toDateString(),
+                commnets: comments.bind(this, post.id),
+            }
+        })
+    } catch (error) {
+        throw error
+    }
+}
 
+
+const comments =  async owner =>{
+    // console.log(commentID);
+    try {
+        const comments = await Comments.find({post: owner})
+        return comments.map(comment =>{
+            console.log(comment);
+            return{
+                ...comment._doc,
+                _id: comment.id,
+                date: new Date(comment._doc.date).toDateString(),
+                byUser: user.bind(this, comment.byUser)
+            }
+        })
+
+    } catch (error) {
+        throw error
+    }
+}
+
+const user = async userId =>{
+    try {
+        const user = await User.findOne({_id: userId})
+            return{
+            ...user._doc,
+            _id: user.id
         }
     } catch (error) {
-        throw "errorrrr"
+        throw error
     }
 }
 
@@ -24,18 +56,16 @@ module.exports = {
     //quary//
     singleUser: async () =>{
         try {
-            const singleUser = await
+            const users = await
             User.find({_id: "5f81dcd86a4edbdd31c917d3"})
-            .then()
-            return singleUser.map(user =>{
-                
+            return users.map(user =>{
+                // console.log(...user._doc.post);
                return{
                     ...user._doc,
                     _id: user.id,
-                    post: getAllPost.bind(this, ...user._doc.post) 
-                    //...user.post._doc,
+                    post: posts.bind(this, user.id),
+                    // ...user.post._doc,
                 }
-
             }) 
         } catch (error) {
             throw error
@@ -66,10 +96,10 @@ module.exports = {
 
     createUser: async (args) =>{
         try {
-            // const existingUser =  await User.findOne({username: args.userInput.username})
-            // if(existingUser){
-            //     throw new Error("User already existed")
-            // }
+            const existingUser =  await User.findOne({username: args.userInput.username})
+            if(existingUser){
+                throw new Error("User already existed")
+            }
             const user = new User({
                 firstname: args.userInput.firstname,
                 lastname: args.userInput.lastname,
@@ -106,6 +136,13 @@ module.exports = {
             return{
                 ...result._doc
             }
+        } catch (error) {
+            throw error
+        }
+    },
+    singleUpload: async (args) =>{
+        try {
+            console.log(args.postImage);
         } catch (error) {
             throw error
         }
