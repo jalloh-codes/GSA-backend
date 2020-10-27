@@ -2,6 +2,10 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema
 
 const UserSchema = new Schema({
+    account:{
+        type: Schema.Types.ObjectId,
+        ref: 'Account'
+    },
     firstname : {
         type: String,
         require : true
@@ -10,12 +14,20 @@ const UserSchema = new Schema({
           type: String,
           require : true,
       },
-      post:[
-          {
-              type: Schema.Types.ObjectId,
-              ref: 'PostText'
-          }
-      ],
+      school : {
+           type: String,
+           require: true
+      },
+   
+      major :{
+          type: String,
+          require : true
+      },
+   
+      role : {
+          type: String
+      },
+   
       interest : {
           type : [String]
       }
