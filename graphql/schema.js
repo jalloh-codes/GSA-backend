@@ -1,58 +1,73 @@
 const {buildSchema } = require('graphql')
 
 module.exports = buildSchema(`
-    type Account{
+    type Account {
+        _id: ID!
         email: String!
         password: String!
+        user: ID
     }
-    type User{
+
+    type User {
         _id: ID!
-        account: Account!
+        account: ID!
         firstname: String!
         lastname: String!
         school: String!
         major: String!
         role: String
+        skills: [String]
         interest: [String]
     }
 
-    type PostText{
+    type PostText {
         _id: ID!
         text: String!
-        likes: [Account!]!
+        likes: [ID!]!
         date: String!
     }
-    type Comment{
+    type Comment {
         _id: ID!
         post: PostText!
         text: String!
-        byUser: Account!
-        likes: [Account!]!
+        byUser: ID!
+        likes: [ID!]!
         date: String
     }
     type PostImage {
         _id: ID!
         imageAlbum: [String!]!
         commnets: [Account!]!
-        likes: [Account!]!
+        likes: [ID!]!
         date: String!
     }
 
-    input AccountInput{
+    type Connection {
+        data: String
+    }
+
+    input AccountInput {
         email: String!
         password: String!
     }
 
-    input UserInput{
-        account: Account!
+
+    input UserInput {
+        account: ID!
         firstname: String!
         lastname: String!
         school: String!
         major: String
         role: String
+        skills: [String]
         interest: [String]
     }
-
+    type AuthPayload {
+        token: String!
+        success: Boolean
+        info: Boolean
+        account: Account!
+    }
     input PostTextInput {
         owner: ID!
         text: String!
@@ -66,19 +81,27 @@ module.exports = buildSchema(`
         text: String!
         byUser: ID!
     }
+
     type RootQuery {
         postText: [PostText!]!
         commnet: [Comment!]!
         postImage: [PostImage!]!
         singleUser: [User!]!
+        userInfo: [User!]!
+        connection: Connection
     }
-    type RootMutation{
+
+    
+    type RootMutation { 
         createPostText(postTextInput: PostTextInput): PostText
         createCommnet(commentInput: CommentInput): Comment
-        createPostImage(postImage: PostImageInput!): PostImage
+        createPostImage(postImage: PostImageInput): PostImage
         createUser(userInput: UserInput): User
-        createAccount(accountInput: AccountInput): Account
+        signup(input: AccountInput): AuthPayload
+        login(input: AccountInput): AuthPayload
+        
     }
+    
     schema{
         query: RootQuery
         mutation: RootMutation

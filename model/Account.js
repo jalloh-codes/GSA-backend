@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const schema = mongoose.schema;
+const Schema = mongoose.Schema
 
 const AccountSchema = new mongoose.Schema({
     email : {
@@ -8,13 +8,15 @@ const AccountSchema = new mongoose.Schema({
         trim: true,
         required : true,
     },
-
     password:{
         type: String,
         required: true,
         trim: true,
     },
-
+    user:{
+        type:   Schema.Types.ObjectId,
+        ref: 'User'
+    },
     date:{
         type: Date,
         default: Date.now

@@ -4,7 +4,7 @@ const Schema = mongoose.Schema
 const commnetSchema = new Schema({
     post:{
         type:   Schema.Types.ObjectId,
-        ref: "Post",
+        ref: "PostText",
     },
     text:{
         type: String

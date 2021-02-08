@@ -28,6 +28,9 @@ const UserSchema = new Schema({
       role : {
           type: String
       },
+      skills: {
+          type: [String]
+      },
    
       interest : {
           type : [String]
