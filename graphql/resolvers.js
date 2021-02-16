@@ -93,7 +93,7 @@ module.exports = {
             // console.log(de);
   
             const users =  await User.find({account: req.userID})
-            console.log(users);
+            console.log();
             return users.map(user =>{
                 return{
                     ...user._doc,
@@ -171,7 +171,7 @@ module.exports = {
             const token = jwt.sign(
                 payload,
                 keys.secretOrKey,
-                {expiresIn: '365'},
+                {expiresIn: '365d'},
             )
             return{
                 token: 'Bearer ' + token,
@@ -238,7 +238,7 @@ module.exports = {
     },
     createUser: async (args, req) =>{
         try {
-            if(req.isAuth){
+            if(!req.isAuth){
                 throw new Error('Unauthanticated')
             }
 

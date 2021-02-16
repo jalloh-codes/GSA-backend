@@ -1,10 +1,12 @@
+const console = require('console');
 const jwt  = require('jsonwebtoken');
 const keys = require("../config/keys");
 
 module.exports = (req, res, next) =>{
     const authHeader = req.get("authorization");
+ 
     if(!authHeader){
-      
+       
         req.isAuth =  false;
         return next()
     }
@@ -17,9 +19,10 @@ module.exports = (req, res, next) =>{
     let decodeToken
     try {
        decodeToken =  jwt.verify(token, keys.secretOrKey);
-    
+      
     } catch (error) {
         req.isAuth =  false
+        console.log({error})
         return next();
     }
     if(!decodeToken){
@@ -29,6 +32,7 @@ module.exports = (req, res, next) =>{
 
     req.isAuth = true;
     req.userID  = decodeToken.id;
+
     return next()
     
 
