@@ -4,19 +4,19 @@ const Schema = mongoose.Schema
 const commnetSchema = new Schema({
     post:{
         type:   Schema.Types.ObjectId,
-        ref: "PostText",
+        ref: "PostText" ? "PostText": "PostImage",
     },
     text:{
         type: String
     },
     byUser:{
         type:   Schema.Types.ObjectId,
-        ref: "Account",
+        ref: "User",
     },
     likes: [
         {
             type: Schema.Types.ObjectId,
-            ref: "Account",
+            ref: "User",
         }
     ],
     date:{
@@ -25,4 +25,4 @@ const commnetSchema = new Schema({
     }
 })
 
-module.exports = Comments = mongoose.model('Commnet', commnetSchema)
+module.exports = Comments = mongoose.model('Comment', commnetSchema)

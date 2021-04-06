@@ -1,16 +1,10 @@
 const {buildSchema } = require('graphql')
 
 module.exports = buildSchema(`
-    type Account {
-        _id: ID!
-        email: String!
-        password: String!
-        user: ID
-    }
-
     type User {
         _id: ID!
-        account: ID!
+        email: String!
+        avatar: String!
         firstname: String!
         lastname: String!
         school: String!
@@ -22,23 +16,26 @@ module.exports = buildSchema(`
 
     type PostText {
         _id: ID!
+        owner: ID!
         text: String!
         likes: [ID!]!
         date: String!
     }
     type Comment {
         _id: ID!
-        post: PostText!
+        post: ID!
         text: String!
-        byUser: ID!
-        likes: [ID!]!
+        byUser: User
+        likes: [User]
         date: String
     }
     type PostImage {
         _id: ID!
-        imageAlbum: [String!]!
-        commnets: [Account!]!
-        likes: [ID!]!
+        owner: User
+        imageAlbum: [String!]
+        text: String!
+        commnets: [Comment]
+        likes: [User]!
         date: String!
     }
 
@@ -53,7 +50,8 @@ module.exports = buildSchema(`
 
 
     input UserInput {
-        account: ID!
+        email: String!
+        password: String!
         firstname: String!
         lastname: String!
         school: String!
@@ -62,11 +60,13 @@ module.exports = buildSchema(`
         skills: [String]
         interest: [String]
     }
+
+
     type AuthPayload {
         token: String!
         success: Boolean
-        info: Boolean
-        account: Account!
+        _id: ID!
+        email: String!
     }
     input PostTextInput {
         owner: ID!
@@ -74,31 +74,43 @@ module.exports = buildSchema(`
     }
 
     input PostImageInput {
+        owner: ID!
         imageAlbum: [String!]!
+        text: String
     }
     input CommentInput {
         post: ID!
         text: String!
-        byUser: ID!
+    }
+    input ProfileImage {
+        image: String!
+    }
+
+    type Result {
+        success: Boolean
     }
 
     type RootQuery {
         postText: [PostText!]!
-        commnet: [Comment!]!
+        commnets: [Comment!]!
         postImage: [PostImage!]!
         singleUser: [User!]!
-        userInfo: [User!]!
+        userInfo: User
         connection: Connection
+        userPosts: [PostImage]
+        allPost: [PostImage]
+
     }
+    
 
     
     type RootMutation { 
         createPostText(postTextInput: PostTextInput): PostText
-        createCommnet(commentInput: CommentInput): Comment
+        createCommnet(input: CommentInput): Comment
         createPostImage(postImage: PostImageInput): PostImage
-        createUser(userInput: UserInput): User
-        signup(input: AccountInput): AuthPayload
+        signup(input: UserInput): AuthPayload
         login(input: AccountInput): AuthPayload
+        profileImage(input: ProfileImage):  Result
         
     }
     
