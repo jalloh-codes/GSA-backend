@@ -10,10 +10,9 @@ const jwt =  require('jsonwebtoken');
 const { Token } = require('graphql');
 const { Error } = require('mongoose');
 const { typeOf } = require('react-is');
-const { Console } = require('console');
+const { Console, log } = require('console');
+const { callbackify } = require('util');
 //const postImage = require('../model/postImage');
-
-
 // return all post owned by  user in the Account document
 const posts = async owner =>{
     try {
@@ -33,7 +32,24 @@ const posts = async owner =>{
     }
 }
 
-
+const likes = async (idArr) =>{
+    const users = []
+    for(let i = 0; i < idArr.length; i++){
+        const likes = await User.findOne({_id: idArr[i]})
+        users.push(likes)
+    }
+    
+    return users.map(user =>{
+        return{
+            _id: user.id,
+            firstname: user.firstname,
+            lastname: user.lastname,
+            avatar: user.avatar,
+            school: user.school,
+            password: null
+        }
+    })
+}
 // return all comments that is acosiated to a post.
 // must provide the the post _id
 const comments =  async owner =>{
@@ -87,8 +103,7 @@ const user = async userId =>{
     }
 }
 
-module.exports = {
-
+const resolvers = {
     //get all authanticated user posts
     profileImage: async (args, req) =>{
         if(!req.isAuth){
@@ -105,9 +120,9 @@ module.exports = {
 
     allPost: async (args, req) =>{
         try {
-            // if(!req.isAuth){
-            //     throw new Error('Unauthanticated')
-            // } 
+            if(!req.isAuth){
+                throw new Error('Unauthanticated')
+            } 
     
             const imagePost =  await PostImage.find({$query: {},$orderby: {date: 1}});
             const textPost =  await PostText.find({$query: {},$orderby: {date: 1}});
@@ -117,12 +132,14 @@ module.exports = {
             //sort by by post date
             const sorted = await newData.sort((a, b) => b.date - a.date);
             return sorted.map(post =>{
+                //console.log(post.likes)
                 return{
                     _id: post.id,
                     ...post._doc,
                     owner: user.bind(this, post.owner),
                     date: new Date(post._doc.date).toDateString(),
-                    commnets: comments.bind(this, post.id)
+                    commnets: comments.bind(this, post.id),
+                    likes: likes.bind(this, post.likes)
                 }
             }) 
         } catch (error) {
@@ -130,26 +147,27 @@ module.exports = {
         }
     },
     
-
     //get a specified user posts by _id
     userPosts: async (args, req) =>{
         try {
             if(!req.isAuth){
                 throw new Error('Unauthanticated')
-            } 
+            }            
 
             const postImages = await PostImage.find({owner: req.userID})
             const postText =  await PostText.find({owner: req.userID})
 
             const newData = postImages.concat(postText)
             const sorted = await newData.sort((a, b) => b.date - a.date);
+            
             return sorted.map(post => {
                 return{
                     ...post._doc, 
                     _id: post.id,
                     date: new Date(post._doc.date).toDateString(),
                     // imageAlbum:  [{...post.imageAlbum}]
-                    commnets: comments.bind(this, post.id)
+                    commnets: comments.bind(this, post.id),
+                    likes: likes.bind(this, post.likes)
                 }
             })
 
@@ -157,15 +175,48 @@ module.exports = {
             throw new Error(error.message)
         }
     },
+    searchUser:  async (args, req) =>{
+        
+        try {
+           
+            // await User.createIndexes({firstname: "text", lastname: "text"}, function(err, res){
+            //     console.log(res);
+            //    console.log(err);
+            // })
+            await User.createIndex(
+                {
+                  firstname: "text",
+                  lastname: "text"
+                }
+              )
+            const query = {$text: {$search: ` cellou`}};
+            const projection ={
+                _id: 0,
+                firstname: 1
+            }
+            const users = await User.find({$text:{ $search:"cellou"}})
+            console.log(users);
+            return users.map(user =>{
+                return{
+                    _id: user.id,
+                    firstname: user.firstname,
+                    lastname: user.lastname,
+                    avatar: user.avatar,
+                    school: user.school,
+                    password: null
+                }
+            })
+        } catch (error) {
+            throw error 
+        }
+    },
     userInfo : async (args, req) =>{
         try {
-        
             if(!req.isAuth){
                 throw new Error('Unauthanticated')
             }
             
             const user =  await User.findOne({_id: req.userID})
-
             return{
                 _id: user.id,
                 email: user._doc.email,
@@ -186,24 +237,6 @@ module.exports = {
 
 
     },
-    singleUser: async (email) =>{
-        try {
-            const accounts = await
-            Account.findOne({email: email})
-            return accounts.map(account =>{
-                // console.log(...user._doc.post);
-               return{
-                    ...account._doc,
-                    _id: account.id,
-                    user: user.bind(this, account.user_doc),
-                    // ...user.post._doc,
-                }
-            }) 
-        } catch (error) {
-            throw error
-        }
-    },
-
     //Mutation//
     createPostImage: async (args, req) =>{
         try {
@@ -225,6 +258,9 @@ module.exports = {
     },
     createPostText: async (args) =>{
         try {
+            if(!req.isAuth){
+                throw new Error('Unauthanticated')
+            }
             const postText = new PostText({
                 owner: args.postTextInput.owner,
                 text: args.postTextInput.text
@@ -288,6 +324,7 @@ module.exports = {
     login: async (args) =>{
         try {
             const accountExist = await User.findOne({email: args.input.email})
+   
             if(!accountExist){
                 throw new Error("Email does not exist")
             }       
@@ -308,6 +345,7 @@ module.exports = {
                     lastname: accountExist.lastname,
                     date: accountExist.date
                 }
+                
                const token = jwt.sign(
                     payload,
                     keys.secretOrKey,
@@ -321,48 +359,6 @@ module.exports = {
                     email: accountExist.email,
                 }
             }
-        } catch (error) {
-            throw error
-        }
-    },
-    createUser: async (args, req) =>{
-        try {
-            // if(!req.isAuth){
-            //     throw new Error('Unauthanticated')
-            // }
-
-            const existingAccount =  await Account.findOne({_id: args.userInput.account})
-            const userExist =  await User.findOne({account: args.userInput.account})
-            if(!existingAccount){
-                throw new Error("User does not exist")
-            }
-            if(userExist){
-                throw new Error("Account information already saved")
-            }
-
-            // if(existingAccount && !userExist){
-     
-            const user = new User({
-                account:    args.userInput.account,
-                firstname: args.userInput.firstname,
-                lastname: args.userInput.lastname,
-                school: args.userInput.school,
-                major: args.userInput.major,
-                role: args.userInput.role,
-                skills: args.userInput.skills,
-                interest: args.userInput.interest
-            });
-            const result =  await user.save();
-            // console.log(user);
-            //const userExist =  await User.findOne({account: accountExist ? accountExist._id: '00000000000000'})
-            return{
-                scuccess: true,
-                ...result._doc
-            }
-            // }else{
-            //     console.log('error');
-            //     throw Error('Account already created')
-            // }
         } catch (error) {
             throw error
         }
@@ -400,28 +396,66 @@ module.exports = {
             throw new Error(error.message)
         }
     },
-    singleUpload: async (args) =>{
+    // post like func
+    like: async (args, req) =>{
         try {
-            console.log(args.postImage);
-        } catch (error) {
-            throw error
-        }
-    },
-    connection: async (args, req) =>{
-        try {
-            // if(!req.isAuth){
-            //     throw new Error('Unauthanticated')
-            // }
-
-            //console.log(req.userID);
-            return{
-                data: 'hello'
+            if(!req.isAuth){
+                throw new Error('Unauthanticated')
+            }
+            const user =  req.userID 
+            const postTextExist = await  PostImage.findOne({_id: args.input.post})
+            const postImageExist = await PostText.findOne({_id:  args.input.post})
+            const userExist =  await User.findOne({_id: user})
+    
+            let post  = postImageExist ? postImageExist : postTextExist
+            if(!post || !userExist){
+                throw new Error("User or Post not found")
             }
             
+            //update like for post if the user already like it and click on the like again it get removed
+            const getUser = post.likes.indexOf(user)
+            if(getUser > -1){
+                post.likes.splice(getUser, 1)
+                await post.save()
+            }else{
+                post.likes.push(user);
+                await post.save()
+            }
+       
+            return{
+                post: user
+            }
         } catch (error) {
-            
+            throw new Error(error.message)
         }
 
+    },
+    // delete post 
+    deletePost: async (args, req) =>{
+        try {
+            if(!req.isAuth){
+                throw new Error('Unauthanticated')
+            }
+            const user =  req.userID 
+            const postTextExist = await  PostImage.findOne({_id: args.input.post})
+            const postImageExist = await PostText.findOne({_id:  args.input.post})
+            const userExist =  await User.findOne({_id: user})
+    
+            let post  = postImageExist ? postImageExist : postTextExist
+            if(!post || !userExist){
+                throw new Error("User or Post not found")
+            }
+            await Comments.deleteMany({post: post.id})
+            await post.deleteOne()
+            console.log(post.id);
+            return{
+                post: user
+            }
+        } catch (error) {
+            throw new Error(error.message)
+        }
 
     }
 }
+
+module.exports  =  resolvers;

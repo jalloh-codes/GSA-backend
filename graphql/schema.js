@@ -39,10 +39,6 @@ module.exports = buildSchema(`
         date: String!
     }
 
-    type Connection {
-        data: String
-    }
-
     input AccountInput {
         email: String!
         password: String!
@@ -60,7 +56,6 @@ module.exports = buildSchema(`
         skills: [String]
         interest: [String]
     }
-
 
     type AuthPayload {
         token: String!
@@ -85,7 +80,12 @@ module.exports = buildSchema(`
     input ProfileImage {
         image: String!
     }
-
+    input createLike {
+        post: ID!
+    }
+    input createDeletePost{
+        post: ID!
+    }
     type Result {
         success: Boolean
     }
@@ -94,15 +94,11 @@ module.exports = buildSchema(`
         postText: [PostText!]!
         commnets: [Comment!]!
         postImage: [PostImage!]!
-        singleUser: [User!]!
         userInfo: User
-        connection: Connection
         userPosts: [PostImage]
         allPost: [PostImage]
-
+        searchUser(searchText: String!):[User]
     }
-    
-
     
     type RootMutation { 
         createPostText(postTextInput: PostTextInput): PostText
@@ -111,13 +107,19 @@ module.exports = buildSchema(`
         signup(input: UserInput): AuthPayload
         login(input: AccountInput): AuthPayload
         profileImage(input: ProfileImage):  Result
-        
+        like(input: createLike): Result
+        deletePost(input: createDeletePost): Result
     }
     
+    type Subscription {
+        createPostText: PostImage
+        createCommnet: PostImage
+        createPostImage: PostImage
+    }
+
     schema{
         query: RootQuery
         mutation: RootMutation
+        subscription: Subscription
     }
-
-
 `)
