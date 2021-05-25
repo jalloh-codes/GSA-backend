@@ -86,6 +86,17 @@ module.exports = buildSchema(`
     input createDeletePost{
         post: ID!
     }
+    input chnagePassword{
+        email: String!
+        currentPassword: String!
+        newPassword: String!
+    }
+    input chnageInfo{
+        major: String
+        role: String
+        skills: [String]
+        interest: [String]
+    }
     type Result {
         success: Boolean
     }
@@ -109,6 +120,8 @@ module.exports = buildSchema(`
         profileImage(input: ProfileImage):  Result
         like(input: createLike): Result
         deletePost(input: createDeletePost): Result
+        updatePassword(input: chnagePassword): AuthPayload
+        updateUserInfo(input: chnageInfo): Result
     }
     
     type Subscription {

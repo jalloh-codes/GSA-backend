@@ -99,7 +99,7 @@ const user = async userId =>{
             password: null
         }
     } catch (error) {
-        
+        throw error
     }
 }
 
@@ -447,12 +447,53 @@ const resolvers = {
             }
             await Comments.deleteMany({post: post.id})
             await post.deleteOne()
-            console.log(post.id);
             return{
                 post: user
             }
         } catch (error) {
             throw new Error(error.message)
+        }
+
+    },
+    updatePassword: async (args, req) =>{
+        try {
+            const accountExist = await User.findOne({email: args.input.email})
+   
+            if(!accountExist){
+                throw new Error("Email does not exist")
+            }  
+            const oldPassword = await bcrypt.compareSync(args.input.currentPassword, accountExist.password)
+    
+            if(!oldPassword){
+                throw new Error('Password does not match')
+            }else{
+                const hashPassword = await bcrypt.hash(args.input.newPassword, 12);
+                accountExist.password =  hashPassword
+                await accountExist.save()
+                const payload = {
+                    id: accountExist._id,
+                    email: accountExist.email,
+                    firstname: accountExist.firstname,
+                    lastname: accountExist.lastname,
+                    date: accountExist.date
+                } 
+               const token = jwt.sign(
+                    payload,
+                    keys.secretOrKey,
+                    {expiresIn: '365d'},
+                )
+                console.log(token);
+                return{
+                    token: 'Bearer ' + token,
+                    success: true,
+                    _id: accountExist._id,
+                    email: accountExist.email,
+                }
+            }
+        } catch (error) {
+            //console.log(error);
+            throw error
+            
         }
 
     }
