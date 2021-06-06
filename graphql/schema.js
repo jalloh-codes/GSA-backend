@@ -13,7 +13,6 @@ module.exports = buildSchema(`
         skills: [String]
         interest: [String]
     }
-
     type PostText {
         _id: ID!
         owner: ID!
@@ -38,13 +37,10 @@ module.exports = buildSchema(`
         likes: [User]!
         date: String!
     }
-
     input AccountInput {
         email: String!
         password: String!
     }
-
-
     input UserInput {
         email: String!
         password: String!
@@ -56,7 +52,6 @@ module.exports = buildSchema(`
         skills: [String]
         interest: [String]
     }
-
     type AuthPayload {
         token: String!
         success: Boolean
@@ -67,7 +62,6 @@ module.exports = buildSchema(`
         owner: ID!
         text: String!
     }
-
     input PostImageInput {
         owner: ID!
         imageAlbum: [String!]!
@@ -97,10 +91,10 @@ module.exports = buildSchema(`
         skills: [String]
         interest: [String]
     }
+
     type Result {
         success: Boolean
     }
-
     type RootQuery {
         postText: [PostText!]!
         commnets: [Comment!]!
@@ -109,8 +103,7 @@ module.exports = buildSchema(`
         userPosts: [PostImage]
         allPost: [PostImage]
         searchUser(searchText: String!):[User]
-    }
-    
+    }   
     type RootMutation { 
         createPostText(postTextInput: PostTextInput): PostText
         createCommnet(input: CommentInput): Comment
@@ -123,13 +116,11 @@ module.exports = buildSchema(`
         updatePassword(input: chnagePassword): AuthPayload
         updateUserInfo(input: chnageInfo): Result
     }
-    
     type Subscription {
         createPostText: PostImage
         createCommnet: PostImage
         createPostImage: PostImage
     }
-
     schema{
         query: RootQuery
         mutation: RootMutation

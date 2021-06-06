@@ -1,29 +1,30 @@
 const User = require('../model/User');
 const PostText = require('../model/postText');
 const Comments = require('../model/comment');
-const Account = require('../model/Account');
 const PostImage = require('../model/postImage');
 const keys = require('../config/keys')
 const bcrypt =  require('bcryptjs')
-const passport  = require('passport')
 const jwt =  require('jsonwebtoken');
-const { Token } = require('graphql');
 const { Error } = require('mongoose');
-const { typeOf } = require('react-is');
-const { Console, log } = require('console');
-const { callbackify } = require('util');
-//const postImage = require('../model/postImage');
-// return all post owned by  user in the Account document
+
+// return all post owned by  a user in the User document (Table)
+// Required user ID 
+// PostImage && PostText is returned
 const posts = async owner =>{
+    // owner == user ID from the User Document (Table)
     try {
         const postsText = await PostText.find({owner: owner})
         const postImage  =  await PostImage.find({owner: owner})
+
+        // concatinate PostImage && PostText array of object
         const newData = postImage.concat(postsText)
         return newData.map(post =>{
             return{
                 ...post._doc,
                 _id: post.id,
                 date: new Date(post._doc.date).toDateString(),
+                // comment is a function
+                // return all comment from a Post by Profiding the Post ID
                 commnets: comments.bind(this, post.id),
             }
         })
@@ -50,6 +51,8 @@ const likes = async (idArr) =>{
         }
     })
 }
+
+
 // return all comments that is acosiated to a post.
 // must provide the the post _id
 const comments =  async owner =>{
@@ -61,6 +64,9 @@ const comments =  async owner =>{
                 ...comment._doc,
                 _id: comment.id,  
                 date: new Date(comment._doc.date).toDateString(),
+                //user is a function
+                // Required User ID it return user information
+                // Return firstName, Lastname, school, email, Avatar
                 byUser: user.bind(this, comment.byUser)
             }
         })
@@ -69,27 +75,14 @@ const comments =  async owner =>{
     }
 }
 
-const byUser = async userId =>{
-    try {
-        const user = await User.findOne({_id: userId})
-            return{
-            _id: user.id,
-            firstname: user.firstname,
-            lastname: user.lastname,
-            avatar: user.avatar,
-            school: user.school,
-            password: null
-        }
-    } catch (error) {
-        throw error
-    }
-}
 
-//return a single user by providing the User document _id
+//return a single user by providing the User ID
+//Password must b set to Null when returning data from the User Document 
 const user = async userId =>{
 
     try {
         const user =  await User.findOne({_id: userId})
+        user.password = null
         return{
             _id: user.id,
             firstname: user.firstname,
@@ -104,17 +97,23 @@ const user = async userId =>{
 }
 
 const resolvers = {
-    //get all authanticated user posts
+
+    //save User Image Profile (Avatar)
     profileImage: async (args, req) =>{
-        if(!req.isAuth){
-            throw new Error('Unauthanticated')
-        }
-        const image =  args.input.image
-        const  user  = await User.updateOne({_id: req.userID}, {$set:{ "avatar": image}})
-        //user.updateOne({$set:{ "avatar": image}})
-        //await user.save()
-        return{
-            success: true
+
+        //determine if a User is authanicated or not
+        try {
+            if(!req.isAuth){
+                throw new Error('Unauthanticated')
+            }
+            // data type must be String not an object
+            const image =  args.input.image
+            const  user  = await User.updateOne({_id: req.userID}, {$set:{ "avatar": image}})
+            return{
+                success: true
+            }
+        } catch (error) {
+            throw error
         }
     },
 
@@ -158,6 +157,7 @@ const resolvers = {
             const postText =  await PostText.find({owner: req.userID})
 
             const newData = postImages.concat(postText)
+            // sort it by new to onld by the post Date
             const sorted = await newData.sort((a, b) => b.date - a.date);
             
             return sorted.map(post => {
@@ -165,8 +165,9 @@ const resolvers = {
                     ...post._doc, 
                     _id: post.id,
                     date: new Date(post._doc.date).toDateString(),
-                    // imageAlbum:  [{...post.imageAlbum}]
+                    // comment is a functioin
                     commnets: comments.bind(this, post.id),
+                    // likes is a function
                     likes: likes.bind(this, post.likes)
                 }
             })
@@ -175,14 +176,11 @@ const resolvers = {
             throw new Error(error.message)
         }
     },
+
+    //TODO
+    // search a user by fisrtname or lastname
     searchUser:  async (args, req) =>{
-        
         try {
-           
-            // await User.createIndexes({firstname: "text", lastname: "text"}, function(err, res){
-            //     console.log(res);
-            //    console.log(err);
-            // })
             await User.createIndex(
                 {
                   firstname: "text",
@@ -210,6 +208,9 @@ const resolvers = {
             throw error 
         }
     },
+
+
+    // return a single Authanticated user information
     userInfo : async (args, req) =>{
         try {
             if(!req.isAuth){
@@ -237,7 +238,12 @@ const resolvers = {
 
 
     },
+
     //Mutation//
+
+
+    // create a new PostImage 
+    // User must be authanitcated
     createPostImage: async (args, req) =>{
         try {
             if(!req.isAuth){
@@ -256,6 +262,9 @@ const resolvers = {
             console.log(error);
         }
     },
+
+    // Create a new PostText
+    // User msut be authanitcated
     createPostText: async (args) =>{
         try {
             if(!req.isAuth){
@@ -275,6 +284,7 @@ const resolvers = {
         }
     },
 
+    // create a new User
     signup: async (args) =>{
         try {
             const accountExist = await User.findOne({email: args.input.email})
@@ -321,19 +331,16 @@ const resolvers = {
         }
     },
 
+    //login func 
     login: async (args) =>{
         try {
             const accountExist = await User.findOne({email: args.input.email})
-   
+            //check if user exit
             if(!accountExist){
                 throw new Error("Email does not exist")
             }       
-           
-            const account = new Account({
-                email: args.input.email,
-                password: args.input.password
-            })
-            const compare = await bcrypt.compareSync(account.password, accountExist.password)
+ 
+            const compare = await bcrypt.compareSync(args.input.password, accountExist.password)
 
             if(!compare){
                 throw new Error('Password does not match')
@@ -346,6 +353,8 @@ const resolvers = {
                     date: accountExist.date
                 }
                 
+
+                //token expire in one year
                const token = jwt.sign(
                     payload,
                     keys.secretOrKey,
@@ -364,6 +373,8 @@ const resolvers = {
         }
     },
 
+    //create a New Comment for a Post
+    //user Must be Authanicated
     createCommnet: async (args, req) =>{
         try {
             if(!req.isAuth){
@@ -397,6 +408,7 @@ const resolvers = {
         }
     },
     // post like func
+    //  Add a  like or Remove a like from Post
     like: async (args, req) =>{
         try {
             if(!req.isAuth){
@@ -430,7 +442,9 @@ const resolvers = {
         }
 
     },
+
     // delete post 
+    //user Must be Authanicated
     deletePost: async (args, req) =>{
         try {
             if(!req.isAuth){
@@ -455,6 +469,8 @@ const resolvers = {
         }
 
     },
+
+    // Update User Password
     updatePassword: async (args, req) =>{
         try {
             const accountExist = await User.findOne({email: args.input.email})
@@ -462,6 +478,8 @@ const resolvers = {
             if(!accountExist){
                 throw new Error("Email does not exist")
             }  
+
+            //check if password match
             const oldPassword = await bcrypt.compareSync(args.input.currentPassword, accountExist.password)
     
             if(!oldPassword){
@@ -482,7 +500,6 @@ const resolvers = {
                     keys.secretOrKey,
                     {expiresIn: '365d'},
                 )
-                console.log(token);
                 return{
                     token: 'Bearer ' + token,
                     success: true,
@@ -496,6 +513,32 @@ const resolvers = {
             
         }
 
+    },
+
+    //update user information in the User document (Table)
+    //user Must be Authanicated
+    updateUserInfo: async (args, req) =>{
+        try {
+            if(!req.isAuth){
+                throw new Error('Unauthanticated')
+            }
+            console.log(args);
+            const user =  req.userID 
+            const userExist =  await User.findOne({_id: user})
+        
+            if(!userExist){
+                throw new Error("User or Post not found")
+            }
+            userExist.updateOne({major: args.input.major, role: args.input.role, interest: args.input.interest, skills: args.input.skills})
+            await userExist.save();
+            console.log(userExist);
+            return{
+                success: true
+            }
+        } catch (error) {
+            console.log(error);
+            throw error
+        }
     }
 }
 

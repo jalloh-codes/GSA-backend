@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 const { schema } = require('./postText');
 const Schema = mongoose.Schema
 
+
+//User Schema (Table)
 const UserSchema = new Schema({
     email : {
         type: String,

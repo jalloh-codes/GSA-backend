@@ -1,6 +1,8 @@
 const jwt  = require('jsonwebtoken');
 const keys = require("../config/keys");
 
+
+//check for tonken exist and if it is valid
 module.exports = (req, res, next) =>{
     const authHeader = req.get("authorization");
     
@@ -27,8 +29,6 @@ module.exports = (req, res, next) =>{
         req.isAuth =  false
         return next();
     }
-
-    
 
     req.isAuth = true;
     req.userID  = decodeToken.id;
