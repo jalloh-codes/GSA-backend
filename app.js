@@ -1,7 +1,7 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 const graphqlHttp = require('express-graphql').graphqlHTTP;
 const mongoose =  require('mongoose');
+mongoose.set('useCreateIndex', true);
 const graphqlSchema = require('./graphql/schema')
 const graphqlResolver = require('./graphql/resolvers')
 const db = require('./config/keys').mongoURI;
@@ -10,16 +10,11 @@ const cors = require('cors')
 const auth =  require('./middleware/auth');
 const app = express();
 
-app.use(bodyParser.json());
 
-// const corsOptions = {
-//   origin: 'http://127.0.0.1:19006',
-//   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
-// }
+// must required the front id address Host Ip (localy or on a hosted server)
+app.use(cors({origin: 'http://127.0.0.1:19000'}));
 
-
-app.use(cors({origin: 'http://localhost:19006'}));
-
+//apply  Authanication to the Apiu route
 app.use(auth);
 
 app.use('/graphql',  graphqlHttp({
@@ -28,6 +23,8 @@ app.use('/graphql',  graphqlHttp({
    graphiql: true
 }))
 
+
+// database connection
 mongoose.connect(db, {useUnifiedTopology: true, useNewUrlParser: true})
   .then((res) => {
     console.log("Connected to the database!");

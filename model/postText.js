@@ -1,25 +1,30 @@
-const mongoose = require('mongoose');
+//this schema discribe the PostText document fields
 
+const mongoose = require('mongoose');
 const Schema = mongoose.Schema
 
+
+//PostText Schema(Table)
 const postTextSchema = new Schema({
+    //onwer of the Post ID
     owner: {
         type: Schema.Types.ObjectId,
-        ref: "Account"
+        ref: "User"
     },
     text:{
         type: String
     },
+     //commnet ID from the Comment Schemma(table) 
     commnets:[
         {
             type:   Schema.Types.ObjectId,
-            ref: "Account",
+            ref: "User",
         }
     ],
     likes: [
         {
             type: Schema.Types.ObjectId,
-            ref: "Account",
+            ref: "User",
         }
     ],
     date:{
