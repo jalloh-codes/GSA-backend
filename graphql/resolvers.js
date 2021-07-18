@@ -522,20 +522,18 @@ const resolvers = {
     //user Must be Authanicated
     updateUserInfo: async (args, req) =>{
         try {
-            console.log(req);
             if(!req.isAuth){
                 throw new Error('Unauthanticated')
             }
-            console.log(args);
             const user =  req.userID 
             const userExist =  await User.findOne({_id: user})
         
             if(!userExist){
                 throw new Error("User or Post not found")
             }
-            userExist.updateOne({major: args.input.major, role: args.input.role, interest: args.input.interest, skills: args.input.skills})
-            //await userExist.save();
-            console.log(userExist);
+            await userExist.updateOne({major: args.input.major, role: args.input.role, interest: args.input.interest, skills: args.input.skills})
+            await userExist.save();
+            console.log(await User.findOne({_id: user}));
             return{
                 success: true
             }
@@ -550,7 +548,7 @@ const resolvers = {
             //     throw new Error('Unauthanticated')
             // }
 
-            console.log(req)
+          
             return{
                 success: true
             }
