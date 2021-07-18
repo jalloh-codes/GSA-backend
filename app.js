@@ -12,7 +12,7 @@ const app = express();
 
 
 // must required the front id address Host Ip (localy or on a hosted server)
-app.use(cors({origin: 'http://127.0.0.1:19000'}));
+app.use(cors({origin: "*",  }));
 
 //apply  Authanication to the Apiu route
 app.use(auth);

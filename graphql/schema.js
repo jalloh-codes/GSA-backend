@@ -86,11 +86,12 @@ module.exports = buildSchema(`
         newPassword: String!
     }
     input chnageInfo{
-        major: String
+        major: String!
         role: String
         skills: [String]
         interest: [String]
     }
+
 
     type Result {
         success: Boolean
