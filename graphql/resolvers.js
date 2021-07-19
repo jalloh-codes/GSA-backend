@@ -82,6 +82,7 @@ const user = async userId =>{
 
     try {
         const user =  await User.findOne({_id: userId})
+        console.log({user});
         user.password = null
         return{
             _id: user.id,
@@ -130,6 +131,7 @@ const resolvers = {
             const newData = imagePost.concat(textPost);
             //sort by by post date
             const sorted = await newData.sort((a, b) => b.date - a.date);
+            
             return sorted.map(post =>{
                 //console.log(post.likes)
                 return{
@@ -249,17 +251,20 @@ const resolvers = {
             if(!req.isAuth){
                 throw new Error('Unauthanticated')
             }
+            console.log(args);
             const postImage = new PostImage({
                 owner: args.postImage.owner,
                 imageAlbum: args.postImage.imageAlbum,
                 text: args.postImage.text
             })
-            const result =  await postImage.save()
+            await postImage.save()
+            console.log({postImage});
             return{
-                ...result._doc
+               screen: true
             }
         } catch (error) {
             console.log(error);
+            throw error
         }
     },
 

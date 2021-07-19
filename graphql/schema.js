@@ -64,7 +64,7 @@ module.exports = buildSchema(`
     }
     input PostImageInput {
         owner: ID!
-        imageAlbum: [String!]!
+        imageAlbum: [String]
         text: String
     }
     input CommentInput {
@@ -108,9 +108,9 @@ module.exports = buildSchema(`
         conn(input: AccountInput): Result
     }   
     type RootMutation { 
-        createPostText(postTextInput: PostTextInput): PostText
+        createPostText(postTextInput: PostTextInput):Result
         createCommnet(input: CommentInput): Comment
-        createPostImage(postImage: PostImageInput): PostImage
+        createPostImage(postImage: PostImageInput): Result
         signup(input: UserInput): AuthPayload
         login(input: AccountInput): AuthPayload
         profileImage(input: ProfileImage):  Result

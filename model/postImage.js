@@ -1,5 +1,4 @@
 //this schema discribe the PostImage document fields
-
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema
 
@@ -10,7 +9,8 @@ const postImageSchema = new Schema({
     //onwer of the Post ID
     owner: { 
         type: Schema.Types.ObjectId,
-        ref: "User"
+        ref: "User",
+        require: true
     },
     // image as url(link) Array of object
     imageAlbum:[
