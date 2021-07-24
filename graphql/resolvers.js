@@ -82,17 +82,20 @@ const user = async userId =>{
 
     try {
         const user =  await User.findOne({_id: userId})
-        console.log({user});
+       
         user.password = null
+
         return{
             _id: user.id,
             firstname: user.firstname,
             lastname: user.lastname,
-            avatar: user.avatar,
+            avatar: user.avatar ? user.avatar : '',
             school: user.school,
+            email: user.email,
             password: null
         }
     } catch (error) {
+        console.log(error);
         throw error
     }
 }
@@ -120,9 +123,9 @@ const resolvers = {
 
     allPost: async (args, req) =>{
         try {
-            if(!req.isAuth){
-                throw new Error('Unauthanticated')
-            } 
+            // if(!req.isAuth){
+            //     throw new Error('Unauthanticated')
+            // } 
     
             const imagePost =  await PostImage.find({$query: {},$orderby: {date: 1}});
             const textPost =  await PostText.find({$query: {},$orderby: {date: 1}});
@@ -131,14 +134,14 @@ const resolvers = {
             const newData = imagePost.concat(textPost);
             //sort by by post date
             const sorted = await newData.sort((a, b) => b.date - a.date);
-            
+
             return sorted.map(post =>{
-                //console.log(post.likes)
+                
                 return{
                     _id: post.id,
                     ...post._doc,
-                    owner: user.bind(this, post.owner),
                     date: new Date(post._doc.date).toDateString(),
+                    owner: user.bind(this, post.owner),
                     commnets: comments.bind(this, post.id),
                     likes: likes.bind(this, post.likes)
                 }
@@ -163,12 +166,14 @@ const resolvers = {
             const sorted = await newData.sort((a, b) => b.date - a.date);
             
             return sorted.map(post => {
+           
                 return{
-                    ...post._doc, 
                     _id: post.id,
+                    ...post._doc,  
                     date: new Date(post._doc.date).toDateString(),
                     // comment is a functioin
                     commnets: comments.bind(this, post.id),
+                    owner:    user.bind(this, post.owner),
                     // likes is a function
                     likes: likes.bind(this, post.likes)
                 }
@@ -195,7 +200,7 @@ const resolvers = {
                 firstname: 1
             }
             const users = await User.find({$text:{ $search:"cellou"}})
-            console.log(users);
+            // console.log(users);
             return users.map(user =>{
                 return{
                     _id: user.id,
@@ -251,19 +256,19 @@ const resolvers = {
             if(!req.isAuth){
                 throw new Error('Unauthanticated')
             }
-            console.log(args);
+            // console.log(args);
             const postImage = new PostImage({
-                owner: args.postImage.owner,
-                imageAlbum: args.postImage.imageAlbum,
-                text: args.postImage.text
+                owner: args.input.owner,
+                imageAlbum: args.input.imageAlbum,
+                text: args.input.text
             })
             await postImage.save()
-            console.log({postImage});
+            // console.log({postImage});
             return{
                screen: true
             }
         } catch (error) {
-            console.log(error);
+            // console.log(error);
             throw error
         }
     },
@@ -272,21 +277,21 @@ const resolvers = {
     // User msut be authanitcated
     createPostText: async (args, req) =>{
         try {
-          
+            console.log(args);
             if(!req.isAuth){
-                console.log(req.isAuth);
+                // console.log(req.isAuth);
                 throw new Error('Unauthanticated')
             }
             const postText = new PostText({
-                owner: args.postTextInput.owner,
-                text: args.postTextInput.text
+                owner: args.input.owner,
+                text: args.input.text
             })
 
-            const result =await  postText.save()
+            await postText.save()
             
             return{
-                ...result._doc
-            }
+                screen: true
+             }
         } catch (error) {
             throw error
         }
@@ -538,7 +543,7 @@ const resolvers = {
             }
             await userExist.updateOne({major: args.input.major, role: args.input.role, interest: args.input.interest, skills: args.input.skills})
             await userExist.save();
-            console.log(await User.findOne({_id: user}));
+            // console.log(await User.findOne({_id: user}));
             return{
                 success: true
             }

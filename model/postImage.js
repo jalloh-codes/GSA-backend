@@ -7,10 +7,9 @@ const Schema = mongoose.Schema
 // Required User ID
 const postImageSchema = new Schema({
     //onwer of the Post ID
-    owner: { 
+    owner: {
         type: Schema.Types.ObjectId,
-        ref: "User",
-        require: true
+        ref: "User"
     },
     // image as url(link) Array of object
     imageAlbum:[

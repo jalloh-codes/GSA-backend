@@ -28,6 +28,15 @@ module.exports = buildSchema(`
         likes: [User]
         date: String
     }
+    type UserPostInfo{
+        _id: ID!
+        email: String!
+        avatar: String!
+        firstname: String!
+        lastname: String!
+        school: String!
+    }
+
     type PostImage {
         _id: ID!
         owner: User
@@ -37,10 +46,12 @@ module.exports = buildSchema(`
         likes: [User]!
         date: String!
     }
+
     input AccountInput {
         email: String!
         password: String!
     }
+
     input UserInput {
         email: String!
         password: String!
@@ -108,9 +119,9 @@ module.exports = buildSchema(`
         conn(input: AccountInput): Result
     }   
     type RootMutation { 
-        createPostText(postTextInput: PostTextInput):Result
+        createPostText(input: PostTextInput):Result
         createCommnet(input: CommentInput): Comment
-        createPostImage(postImage: PostImageInput): Result
+        createPostImage(input: PostImageInput): Result
         signup(input: UserInput): AuthPayload
         login(input: AccountInput): AuthPayload
         profileImage(input: ProfileImage):  Result
