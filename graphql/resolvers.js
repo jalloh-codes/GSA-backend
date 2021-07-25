@@ -45,7 +45,7 @@ const likes = async (idArr) =>{
             _id: user.id,
             firstname: user.firstname,
             lastname: user.lastname,
-            avatar: user.avatar,
+            avatar: user.avatar ? user.avatar : '',
             school: user.school,
             password: null
         }
@@ -84,7 +84,7 @@ const user = async userId =>{
         const user =  await User.findOne({_id: userId})
        
         user.password = null
-
+        console.log(user.avatar);
         return{
             _id: user.id,
             firstname: user.firstname,
@@ -123,6 +123,7 @@ const resolvers = {
 
     allPost: async (args, req) =>{
         try {
+
             // if(!req.isAuth){
             //     throw new Error('Unauthanticated')
             // } 
@@ -136,7 +137,6 @@ const resolvers = {
             const sorted = await newData.sort((a, b) => b.date - a.date);
 
             return sorted.map(post =>{
-                
                 return{
                     _id: post.id,
                     ...post._doc,
@@ -277,7 +277,6 @@ const resolvers = {
     // User msut be authanitcated
     createPostText: async (args, req) =>{
         try {
-            console.log(args);
             if(!req.isAuth){
                 // console.log(req.isAuth);
                 throw new Error('Unauthanticated')
