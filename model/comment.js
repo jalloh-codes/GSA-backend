@@ -1,10 +1,18 @@
+//this schema discribe the Comment document fields
+
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema
 
+
+// Comment shema document (table)
+// PostImage and PsoText Comment Schema
+// schema field PostImage OR PsoText ID
+//  User ID
 const commnetSchema = new Schema({
     post:{
         type:   Schema.Types.ObjectId,
-        ref: "Post",
+        ref: "PostText" ? "PostText": "PostImage",
+        // postImage 
     },
     text:{
         type: String
@@ -25,4 +33,4 @@ const commnetSchema = new Schema({
     }
 })
 
-module.exports = Comments = mongoose.model('Commnet', commnetSchema)
+module.exports = Comments = mongoose.model('Comment', commnetSchema)

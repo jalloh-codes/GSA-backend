@@ -4,13 +4,28 @@
   "description": "",
   "main": "app.js",
   "dependencies": {
+<<<<<<< HEAD
     "express": "^4.17.1",
     "graphql": "^15.3.0",
+=======
+    "@apollo/client": "^3.3.6",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "express-graphql": "^0.11.0",
+    "graphql": "^15.4.0",
+    "graphql-subscriptions": "^1.2.1",
+    "jsonwebtoken": "^8.5.1",
+>>>>>>> cellou
     "mongodb": "^3.6.2",
-    "mongoose": "^5.10.5"
+    "mongoose": "^5.10.5",
+    "passport": "^0.4.1",
+    "passport-jwt": "^4.0.0",
+    "passport-local": "^1.0.0"
   },
   "devDependencies": {
-    "nodemon": "^2.0.4"
+    "nodemon": "^2.0.7"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
