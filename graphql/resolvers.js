@@ -1,10 +1,6 @@
 const User = require('../model/User');
 const PostText = require('../model/postText');
 const Comments = require('../model/comment');
-<<<<<<< HEAD
-const Account = require('../model/account.js')
-
-=======
 const PostImage = require('../model/postImage');
 const keys = require('../config/keys')
 const bcrypt =  require('bcryptjs')
@@ -14,7 +10,6 @@ const { Error } = require('mongoose');
 // return all post owned by  a user in the User document (Table)
 // Required user ID 
 // PostImage && PostText is returned
->>>>>>> cellou
 const posts = async owner =>{
     // owner == user ID from the User Document (Table)
     try {
@@ -80,14 +75,6 @@ const comments =  async owner =>{
     }
 }
 
-<<<<<<< HEAD
-const user = async email =>{
-    try {
-        const user = await User.findOne({email: email})
-            return{
-            ...user._doc,
-            _id: user.id
-=======
 
 //return a single user by providing the User ID
 //Password must b set to Null when returning data from the User Document 
@@ -106,7 +93,6 @@ const user = async userId =>{
             school: user.school,
             email: user.email,
             password: null
->>>>>>> cellou
         }
     } catch (error) {
         console.log(error);
@@ -291,15 +277,9 @@ const resolvers = {
     // User msut be authanitcated
     createPostText: async (args, req) =>{
         try {
-<<<<<<< HEAD
-            const existingUser =  await User.findOne({email: args.userInput.email})
-            if(existingUser){
-                throw new Error("User already existed")
-=======
             if(!req.isAuth){
                 // console.log(req.isAuth);
                 throw new Error('Unauthanticated')
->>>>>>> cellou
             }
             const postText = new PostText({
                 owner: args.input.owner,

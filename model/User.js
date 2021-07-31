@@ -5,11 +5,6 @@ const Schema = mongoose.Schema
 
 //User Schema (Table)
 const UserSchema = new Schema({
-<<<<<<< HEAD
-    account:{
-        type: Schema.Types.ObjectId,
-        ref: 'Account'
-=======
     email : {
         type: String,
         unique : true,
@@ -23,31 +18,10 @@ const UserSchema = new Schema({
         type: String,
         required: true,
         trim: true,
->>>>>>> cellou
     },
     firstname : {
         type: String,
         require : true
-<<<<<<< HEAD
-      },
-      lastname :{
-          type: String,
-          require : true,
-      },
-      school : {
-           type: String,
-           require: true
-      },
-      major :{
-          type: String,
-          require : true
-      },
-      role : {
-          type: String
-      },
-      interest : [{type:String}]
-      
-=======
     },
     lastname :{
         type: String,
@@ -77,7 +51,6 @@ const UserSchema = new Schema({
         type: Date,
         default: Date.now
     }
->>>>>>> cellou
 })
 
 //UserSchema.index({firstname: 'text'})

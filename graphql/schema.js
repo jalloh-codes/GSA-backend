@@ -3,61 +3,23 @@ const {buildSchema } = require('graphql')
 module.exports = buildSchema(`
     type User {
         _id: ID!
-<<<<<<< HEAD
-        account: ID!
-=======
         email: String!
         avatar: String!
->>>>>>> cellou
         firstname: String!
         lastname: String!
         school: String!
         major: String!
         role: String
-<<<<<<< HEAD
-        interest: [String!]
-    }
-
-    type Account{
-        _id: ID!
-        email: String!
-        password: String!
-    }
-
-    type PostText{
-=======
         skills: [String]
         interest: [String]
     }
     type PostText {
->>>>>>> cellou
         _id: ID!
         owner: ID!
         text: String!
         likes: [ID!]!
         date: String!
     }
-<<<<<<< HEAD
-
-    type Comment{
-        _id: ID!
-        post: Account!
-        text: String!
-        byUser: User!
-        likes: [Account!]!
-        date: String
-    }
-
-    type PostImage {
-        _id: ID!
-        imageAlbum: [String!]!
-        commnets: [Account!]!
-        likes: [Account!]!
-        date: String!
-    }
-
-    input AccountInput{
-=======
     type Comment {
         _id: ID!
         post: ID!
@@ -86,22 +48,10 @@ module.exports = buildSchema(`
     }
 
     input AccountInput {
->>>>>>> cellou
         email: String!
         password: String!
     }
 
-<<<<<<< HEAD
-    input UserInput{
-        _id: ID!
-        account: ID!
-        firstname: String!
-        lastname: String!
-        school: String!
-        major: String!
-        role: String
-        interest: [String!]
-=======
     input UserInput {
         email: String!
         password: String!
@@ -118,7 +68,6 @@ module.exports = buildSchema(`
         success: Boolean
         _id: ID!
         email: String!
->>>>>>> cellou
     }
     input PostTextInput {
         owner: ID!
@@ -164,17 +113,6 @@ module.exports = buildSchema(`
         postText: [PostText!]!
         commnets: [Comment!]!
         postImage: [PostImage!]!
-<<<<<<< HEAD
-        singleUser: [Account!]!
-    }
-
-    type RootMutation{
-        createPostText(postTextInput: PostTextInput): PostText
-        createCommnet(commentInput: CommentInput): Comment
-        createPostImage(postImage: PostImageInput!): PostImage
-        createAccount(userInput: AccountInput): Account
-        createUser(userInput: UserInput): User
-=======
         userInfo: User
         userPosts: [PostImage]
         allPost: [PostImage]
@@ -199,7 +137,6 @@ module.exports = buildSchema(`
         createPostText: PostImage
         createCommnet: PostImage
         createPostImage: PostImage
->>>>>>> cellou
     }
     schema{
         query: RootQuery
