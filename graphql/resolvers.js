@@ -319,7 +319,6 @@ const resolvers = {
                 interest: args.input.interest
             })
             const result = await user.save()
-
             const payload = {
                 email: result.email,
                 id: result._id,
