@@ -304,7 +304,6 @@ const resolvers = {
             if(accountExist){
                 throw new Error("Email already existed")
             }
-            
     
             const hashPassword = await bcrypt.hash(args.input.password, 12);
             const user = new User({
@@ -319,6 +318,7 @@ const resolvers = {
                 interest: args.input.interest
             })
             const result = await user.save()
+
             const payload = {
                 email: result.email,
                 id: result._id,
