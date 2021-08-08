@@ -248,7 +248,6 @@ const resolvers = {
 
     //Mutation//
 
-
     // create a new PostImage 
     // User must be authanitcated
     createPostImage: async (args, req) =>{
@@ -304,7 +303,6 @@ const resolvers = {
             if(accountExist){
                 throw new Error("Email already existed")
             }
-    
             const hashPassword = await bcrypt.hash(args.input.password, 12);
             const user = new User({
                 email: args.input.email,
@@ -319,18 +317,20 @@ const resolvers = {
             })
             const result = await user.save()
 
-            const payload = {
+            const payload = await {
                 email: result.email,
                 id: result._id,
                 firstname: result.firstname,
                 lastname: result.lastname,
                 date: result.date
             }
-            const token = jwt.sign(
+
+            const token = await jwt.sign(
                 payload,
                 keys.secretOrKey,
                 {expiresIn: '365d'},
             )
+
             return{
                 token: 'Bearer ' + token,
                 success: true,
@@ -338,6 +338,7 @@ const resolvers = {
                 email: result.email,
             }
         } catch (error) {
+            console.log(error);
             throw error
         }
     },
