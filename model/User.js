@@ -54,7 +54,11 @@ const UserSchema = new Schema({
 })
 
 //UserSchema.index({firstname: 'text'})
+<<<<<<< HEAD
 //UserSchema.index({email: 'text'})
+=======
+// UserSchema.index({email: 'text'})
+>>>>>>> 2c6b9f6b98f88ebd6163c42317f47930d8ed4234
 // UserSchema.index({lastname: 'text'})
 // UserSchema.index({firstname: 'text'})
 
