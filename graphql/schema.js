@@ -4,7 +4,7 @@ module.exports = buildSchema(`
     type User {
         _id: ID!
         email: String!
-        avatar: String!
+        avatar: String
         firstname: String!
         lastname: String!
         school: String!
@@ -15,7 +15,7 @@ module.exports = buildSchema(`
     }
     type PostText {
         _id: ID!
-        owner: ID!
+        owner: User
         text: String!
         likes: [ID!]!
         date: String!
@@ -31,7 +31,7 @@ module.exports = buildSchema(`
     type UserPostInfo{
         _id: ID!
         email: String!
-        avatar: String!
+        avatar: String
         firstname: String!
         lastname: String!
         school: String!

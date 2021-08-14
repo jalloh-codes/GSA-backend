@@ -84,7 +84,6 @@ const user = async userId =>{
         const user =  await User.findOne({_id: userId})
        
         user.password = null
-        console.log(user.avatar);
         return{
             _id: user.id,
             firstname: user.firstname,
@@ -101,7 +100,7 @@ const user = async userId =>{
 }
 
 const resolvers = {
-
+//61105aee355303b9a81ff12b
     //save User Image Profile (Avatar)
     profileImage: async (args, req) =>{
 
