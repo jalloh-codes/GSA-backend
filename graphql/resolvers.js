@@ -37,8 +37,11 @@ const likes = async (idArr) =>{
     const users = []
     for(let i = 0; i < idArr.length; i++){
         const likes = await User.findOne({_id: idArr[i]})
-        users.push(likes)
+        if(likes){
+            users.push(likes)
+        }
     }
+
     
     return users.map(user =>{
         return{
