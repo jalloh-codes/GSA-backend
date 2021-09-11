@@ -107,6 +107,7 @@ module.exports = buildSchema(`
 
     type Result {
         success: Boolean
+        _id: ID!
     }
 
     type RootQuery {
@@ -133,11 +134,20 @@ module.exports = buildSchema(`
         updateUserInfo(input: chnageInfo): Result
         con(input: AccountInput): Result
     }
+
     type Subscription {
-        createPostText: PostImage
-        createCommnet: PostImage
-        createPostImage: PostImage
+        createPostText: PostText!
+        removePostText: PostText!
+        createPostImage: PostImage!
+        removePostImafe: PostImage!
+        createComment: Comment!
+        postTextLiked: PostText!
+        postTextDisLiked: PostText!
+        postImageLiked:  PostImage!
+        postImageDisLiked: PostImage!
+
     }
+
     schema{
         query: RootQuery
         mutation: RootMutation

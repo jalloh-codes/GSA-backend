@@ -6,10 +6,14 @@ const keys = require('../config/keys')
 const bcrypt =  require('bcryptjs')
 const jwt =  require('jsonwebtoken');
 const { Error } = require('mongoose');
+const { PubSub } =  require('graphql-subscriptions');
+const pubsub = new PubSub();
 
 // return all post owned by  a user in the User document (Table)
 // Required user ID 
 // PostImage && PostText is returned
+
+const TEXT_POST_CREATED = 'TEXT_POST_CREATED';
 const posts = async owner =>{
     // owner == user ID from the User Document (Table)
     try {
@@ -166,7 +170,7 @@ const resolvers = {
             const newData = postImages.concat(postText)
             // sort it by new to onld by the post Date
             const sorted = await newData.sort((a, b) => b.date - a.date);
-            
+            // pubsub.publish(TEXT_POST_CREATED, { sorted});
             return sorted.map(post => {
            
                 return{
@@ -289,6 +293,7 @@ const resolvers = {
 
             await postText.save()
             
+
             return{
                 screen: true
              }
@@ -447,9 +452,9 @@ const resolvers = {
                 post.likes.push(user);
                 await post.save()
             }
-       
             return{
-                post: user
+                _id: user,
+                success: true
             }
         } catch (error) {
             throw new Error(error.message)
@@ -568,6 +573,12 @@ const resolvers = {
             
         }
     },
+
+    // Subscription:{
+    //     createPostText:{
+    //         subscribe: () => pubsub.asyncIterator(TEXT_POST_CREATED)
+    //     }
+    // }
     
 }
 
