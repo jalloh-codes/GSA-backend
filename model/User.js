@@ -19,6 +19,10 @@ const UserSchema = new Schema({
         required: true,
         trim: true,
     },
+    confirmed :{
+        type: Boolean,
+        default: false
+    },
     firstname : {
         type: String,
         require : true

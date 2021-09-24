@@ -9,7 +9,7 @@ const postTextSchema = new Schema({
     //onwer of the Post ID
     owner: {
         type: Schema.Types.ObjectId,
-        ref: "Account"
+        ref: "User"
     },
     text:{
         type: String
@@ -18,13 +18,13 @@ const postTextSchema = new Schema({
     commnets:[
         {
             type:   Schema.Types.ObjectId,
-            ref: "Account",
+            ref: "User",
         }
     ],
     likes: [
         {
             type: Schema.Types.ObjectId,
-            ref: "Account",
+            ref: "User",
         }
     ],
     date:{

@@ -1,4 +1,5 @@
 const User = require('../model/User');
+const Verify = require('../model/Verify')
 const PostText = require('../model/postText');
 const Comments = require('../model/comment');
 const PostImage = require('../model/postImage');
@@ -7,12 +8,21 @@ const bcrypt =  require('bcryptjs')
 const jwt =  require('jsonwebtoken');
 const { Error } = require('mongoose');
 const { PubSub } =  require('graphql-subscriptions');
+const nodemailer = require("nodemailer");
 const pubsub = new PubSub();
 
 // return all post owned by  a user in the User document (Table)
 // Required user ID 
 // PostImage && PostText is returned
 
+//GENERATE RANDOM CODE
+const uniqueId = () => {
+    const dateString = Date.now().toString(36);
+    const randomness = Math.random().toString(36).substr(2);
+    // return dateString + randomness;
+};
+
+// uniqueId()
 const TEXT_POST_CREATED = 'TEXT_POST_CREATED';
 const posts = async owner =>{
     // owner == user ID from the User Document (Table)
@@ -40,7 +50,7 @@ const posts = async owner =>{
 const likes = async (idArr) =>{
     const users = []
     for(let i = 0; i < idArr.length; i++){
-        const likes = await User.findOne({_id: idArr[i]})
+        const likes = await User.findOne({_id: idArr[i]},{password: 0})
         if(likes){
             users.push(likes)
         }
@@ -82,13 +92,56 @@ const comments =  async owner =>{
     }
 }
 
+const sendMailFun = async (id) =>{
+        const accountExist = await User.findOne({_id: id}, {password: 0})
+        if(!accountExist){
+            throw new Error("Email doest not existed")
+        }
+
+        const newCode =  'dkhfiwe999999'
+        const verifyExist = await Verify.findOne({user: id})
+        if(!verifyExist){
+            const verify = new Verify({
+                user: accountExist._id,
+                code: newCode
+            })
+            await verify.save()
+        }else{
+            verifyExist.code = newCode
+            await verifyExist.save()
+        }
+        // create reusable transporter object using the default SMTP transport
+        let transporter = nodemailer.createTransport({
+            service: "Gmail",
+            auth: {
+            user: keys.email, // generated ethereal user
+            pass: keys.code, // generated ethereal password
+            },
+        });
+
+        // send mail with defined transport object
+        let info = await transporter.sendMail({
+            from: '"GSA PORTAL 🇬🇳 " <blessmuss@gmail.com>', // sender address
+            to: `${accountExist.email}`, // list of receivers
+            subject: "GSA PORTAL 🇬🇳", // Subject line
+            text: "Hello New User 🤗", // plain text body
+            html: `<b>Hello ${accountExist.firstname}</b>
+                    <div> 
+                        <p>Pleace verify your email address</p>
+                        <p>your security code is= ${newCode}</p>
+                        <p>the Code will expire in 10 munite</p>
+                    </div>`, // html body
+        }); 
+        let success  = true
+        return success
+}
 
 //return a single user by providing the User ID
 //Password must b set to Null when returning data from the User Document 
 const user = async userId =>{
 
     try {
-        const user =  await User.findOne({_id: userId})
+        const user =  await User.findOne({_id: userId}, {password: 0})
        
         user.password = null
         return{
@@ -98,7 +151,6 @@ const user = async userId =>{
             avatar: user.avatar ? user.avatar : '',
             school: user.school,
             email: user.email,
-            password: null
         }
     } catch (error) {
         console.log(error);
@@ -230,14 +282,13 @@ const resolvers = {
                 throw new Error('Unauthanticated')
             }
             
-            const user =  await User.findOne({_id: req.userID})
+            const user =  await User.findOne({_id: req.userID}, {password: 0})
             return{
                 _id: user.id,
                 email: user._doc.email,
                 firstname: user._doc.firstname,
                 lastname: user._doc.lastname,
                 school: user._doc.school,
-                password: null,
                 skills: user._doc.skills ? user._doc.skills : '' ,
                 avatar: user._doc.avatar ? user._doc.avatar : '',
                 major: user._doc.major ? user._doc.major: ' ',
@@ -305,14 +356,13 @@ const resolvers = {
     // create a new User
     signup: async (args) =>{
         try {
-            const accountExist = await User.findOne({email: args.input.email})
+            const accountExist = await User.findOne({email: args.input.email}, {password: 0})
 
             if(accountExist){
                 throw new Error("Email already existed")
             }
             const validate = (email) => {
                 const expression = /(?!.*\.{2})^([a-z\d!#$%&'*+\-\/=?^_`{|}~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+(\.[a-z\d!#$%&'*+\-\/=?^_`{|}~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+)*|"((([\t]*\r\n)?[\t]+)?([\x01-\x08\x0b\x0c\x0e-\x1f\x7f\x21\x23-\x5b\x5d-\x7e\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|\\[\x01-\x09\x0b\x0c\x0d-\x7f\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))*(([\t]*\r\n)?[\t]+)?")@(([a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|[a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF][a-z\d\-._~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]*[a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])\.)+([a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|[a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF][a-z\d\-._~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]*[a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])\.?$/i;
-            
                 return expression.test(String(email).toLowerCase())
             }
             const hashPassword = await bcrypt.hash(args.input.password, 12);
@@ -330,27 +380,12 @@ const resolvers = {
              
             if(validate(user.email)){
                 const result = await user.save()
-            
-                const payload = await {
-                    email: result.email,
-                    id: result._id,
-                    firstname: result.firstname,
-                    lastname: result.lastname,
-                    date: result.date
-                }
-                const token = await jwt.sign(
-                    payload,
-                    keys.secretOrKey,
-                    {expiresIn: '365d'},
-                )
+                const send = await sendMailFun(result._id)
                 return{
-                    token: 'Bearer ' + token,
-                    success: true,
-                    _id: result._id,
-                    email: result.email,
+                    success: send ? true : false,
+                    _id: result._id
                 }
             }else{
-                console.log('Invalid');
                 throw new Error("Email not valid")
             }
         } catch (error) {
@@ -366,13 +401,23 @@ const resolvers = {
             //check if user exit
             if(!accountExist){
                 throw new Error("Email does not exist")
-            }       
- 
+            }
+           
+            if(!accountExist.confirmed){ 
+                await sendMailFun(accountExist._id)
+                return{
+                    success: false,
+                    _id: accountExist._id,
+                    token: '',
+                    email: ''
+                }
+            }      
             const compare = await bcrypt.compareSync(args.input.password, accountExist.password)
 
             if(!compare){
                 throw new Error('Password does not match')
             }else{
+             
                 const payload = {
                     id: accountExist._id,
                     email: accountExist.email,
@@ -381,7 +426,6 @@ const resolvers = {
                     date: accountExist.date
                 }
                 
-
                 //token expire in one year
                const token = jwt.sign(
                     payload,
@@ -411,7 +455,7 @@ const resolvers = {
             
             const postTextExist = await  PostImage.findOne({_id:  args.input.post})
             const postImageExist = await PostText.findOne({_id:  args.input.post})
-            const userExist =  await User.findOne({_id: req.userID})
+            const userExist =  await User.findOne({_id: req.userID}, {password: 0})
 
             let post  = postImageExist ? postImageExist : postTextExist
             if(!post || !userExist){
@@ -445,7 +489,7 @@ const resolvers = {
             const user =  req.userID 
             const postTextExist = await  PostImage.findOne({_id: args.input.post})
             const postImageExist = await PostText.findOne({_id:  args.input.post})
-            const userExist =  await User.findOne({_id: user})
+            const userExist =  await User.findOne({_id: user}, {password: 0})
     
             let post  = postImageExist ? postImageExist : postTextExist
             if(!post || !userExist){
@@ -481,7 +525,7 @@ const resolvers = {
             const user =  req.userID 
             const postTextExist = await  PostImage.findOne({_id: args.input.post})
             const postImageExist = await PostText.findOne({_id:  args.input.post})
-            const userExist =  await User.findOne({_id: user})
+            const userExist =  await User.findOne({_id: user}, {password: 0})
     
             let post  = postImageExist ? postImageExist : postTextExist
             if(!post || !userExist){
@@ -501,7 +545,7 @@ const resolvers = {
     // Update User Password
     updatePassword: async (args, req) =>{
         try {
-            const accountExist = await User.findOne({email: args.input.email})
+            const accountExist = await User.findOne({email: args.input.email}, {password: 0})
    
             if(!accountExist){
                 throw new Error("Email does not exist")
@@ -551,7 +595,7 @@ const resolvers = {
                 throw new Error('Unauthanticated')
             }
             const user =  req.userID 
-            const userExist =  await User.findOne({_id: user})
+            const userExist =  await User.findOne({_id: user}, {password: 0})
         
             if(!userExist){
                 throw new Error("User or Post not found")
@@ -582,7 +626,88 @@ const resolvers = {
             
         }
     },
+    sendCode : async (args, req) =>{
+        try {
+            
+            const send = await sendMailFun(args.input.user)
+            return{
+                success: send ? true : false,
+                _id: args.input.user
+            }
+        } catch (error) {
+            throw error
+        }
 
+    },
+    verifyUser : async (args, req) =>{
+        try {
+            // const allCodes =  Verify.findOne()
+            // console.log(allCodes);
+            const verify = await Verify.findOne({user: args.input.user})
+            
+            if(!verify){
+                throw new Error("Account can't be verified")
+            }
+
+            const accountExist = await User.findOne({_id: verify.user}, {password: 0})
+            const code  = args.input.code
+            if(code !==  verify.code){
+                throw new Error('Code Does not Match')
+            }
+
+            accountExist.confirmed =  true
+            await accountExist.save()
+            await verify.remove()
+            //create reusable transporter object using the default SMTP transport
+            let transporter = nodemailer.createTransport({
+                service: "Gmail",
+                auth: {
+                user: "blessmuss@gmail.com", // generated ethereal user
+                pass: "NakryOutLaw@1", // generated ethereal password
+                },
+            });
+            //send mail with defined transport object
+            let info = await transporter.sendMail({
+                from: '"GSA PORTAL 🇬🇳 " <blessmuss@gmail.com>', // sender address
+                to: `${accountExist.email}`, // list of receivers
+                subject: "GSA PORTAL 🇬🇳", // Subject line
+                text: "Hello New User 🤗", // plain text body
+                html: `<b>Hello ${accountExist.firstname}</b>
+                        <div> 
+                            <hr>
+                            <p>Welcome to the GSA Portal App 📱📱📱📱📱📱📱</p>
+                            <p>Happy Chatting 💬💬💬💬💬💬 </p>
+                            <hr>
+                        </div>`, // html body
+            }); 
+
+            
+            const payload = await {
+                email: accountExist.email,
+                id: accountExist._id,
+                firstname: accountExist.firstname,
+                lastname: accountExist.lastname,
+                date: accountExist.date
+            }
+            const token = await jwt.sign(
+                payload,
+                keys.secretOrKey,
+                {expiresIn: '365d'},
+            )
+            return{
+                token: 'Bearer ' + token,
+                success: true,
+                _id: accountExist._id,
+                email: accountExist.email,
+            }
+        } catch (error) {
+            throw error
+        }
+
+    }
+
+
+    
     // Subscription:{
     //     createPostText:{
     //         subscribe: () => pubsub.asyncIterator(TEXT_POST_CREATED)

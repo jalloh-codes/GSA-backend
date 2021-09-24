@@ -13,6 +13,12 @@ module.exports = buildSchema(`
         skills: [String]
         interest: [String]
     }
+    type Verify {
+        _id: ID!
+        user: User!
+        code: String!
+    }
+
     type PostText {
         _id: ID!
         owner: User
@@ -104,6 +110,14 @@ module.exports = buildSchema(`
         interest: [String]
     }
 
+    input verify{
+        user: ID!
+        code: String!
+    }
+
+    input resend{
+        user: ID!
+    }
 
     type Result {
         success: Boolean
@@ -125,13 +139,15 @@ module.exports = buildSchema(`
         createPostText(input: PostTextInput):Result
         createCommnet(input: CommentInput): Comment
         createPostImage(input: PostImageInput): Result
-        signup(input: UserInput): AuthPayload
+        signup(input: UserInput): Result
         login(input: AccountInput): AuthPayload
         profileImage(input: ProfileImage):  Result
         like(input: createLike): Result
         deletePost(input: createDeletePost): Result
         updatePassword(input: chnagePassword): AuthPayload
         updateUserInfo(input: chnageInfo): Result
+        verifyUser(input: verify): AuthPayload
+        sendCode(input: resend): Result 
         con(input: AccountInput): Result
     }
 

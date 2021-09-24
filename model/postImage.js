@@ -25,14 +25,14 @@ const postImageSchema = new Schema({
     commnets:[
         {
             type:   Schema.Types.ObjectId,
-            ref: "Account",
+            ref: "User",
         }
     ],
     // User ID only
     likes: [
         {
             type: Schema.Types.ObjectId,
-            ref: "Account",
+            ref: "User",
         }
     ],
     date:{
