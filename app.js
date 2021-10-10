@@ -13,7 +13,7 @@ const User = require('./model/User');
 const bcrypt =  require('bcryptjs');
 const AWS = require('aws-sdk');
 const aws = require('./config/keys')
-
+require('dotenv').config()
 // must required the front id address Host Ip (localy or on a hosted server)
 app.use(cors({origin: "*",  }));
 
@@ -39,7 +39,6 @@ app.get('/confirmation/:key', async (req, res) => {
   }
   const re = await getImageFromS3(req.params.key);
 
-  console.log(re);
   console.log(req.params.key);
   return res.json({
     status: 'hello'
