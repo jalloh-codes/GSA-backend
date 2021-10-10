@@ -10,10 +10,13 @@ const { Error } = require('mongoose');
 const { PubSub } =  require('graphql-subscriptions');
 const nodemailer = require("nodemailer");
 const pubsub = new PubSub();
-
+const AWS = require('aws-sdk');
+const aws = keys
+const fs = require('fs')
 // return all post owned by  a user in the User document (Table)
 // Required user ID 
 // PostImage && PostText is returned
+
 
 //GENERATE RANDOM CODE
 const uniqueId = () => {
@@ -23,7 +26,8 @@ const uniqueId = () => {
 };
 
 // uniqueId()
-const TEXT_POST_CREATED = 'TEXT_POST_CREATED';
+
+
 const posts = async owner =>{
     // owner == user ID from the User Document (Table)
     try {
@@ -35,11 +39,11 @@ const posts = async owner =>{
         return newData.map(post =>{
             return{
                 ...post._doc,
-                _id: post.id,
+                _id: post._id,
                 date: new Date(post._doc.date).toDateString(),
                 // comment is a function
                 // return all comment from a Post by Profiding the Post ID
-                commnets: comments.bind(this, post.id),
+                commnets: comments.bind(this, post._id),
             }
         })
     } catch (error) {
@@ -59,7 +63,7 @@ const likes = async (idArr) =>{
     
     return users.map(user =>{
         return{
-            _id: user.id,
+            _id: user._id,
             firstname: user.firstname,
             lastname: user.lastname,
             avatar: user.avatar ? user.avatar : '',
@@ -68,7 +72,6 @@ const likes = async (idArr) =>{
         }
     })
 }
-
 
 // return all comments that is acosiated to a post.
 // must provide the the post _id
@@ -79,7 +82,7 @@ const comments =  async owner =>{
         return comments.map(comment =>{
             return{
                 ...comment._doc,
-                _id: comment.id,  
+                _id: comment._id,  
                 date: new Date(comment._doc.date).toDateString(),
                 //user is a function
                 // Required User ID it return user information
@@ -136,21 +139,20 @@ const sendMailFun = async (id) =>{
         return success
 }
 
+
+
 //return a single user by providing the User ID
 //Password must b set to Null when returning data from the User Document 
 const user = async userId =>{
-
     try {
         const user =  await User.findOne({_id: userId}, {password: 0})
-       
-        user.password = null
         return{
-            _id: user.id,
-            firstname: user.firstname,
-            lastname: user.lastname,
+            _id: user._id ?  user._id : '',
+            firstname: user.firstname ? user.firstname : '',
+            lastname: user.lastname ? user.lastname : '',
             avatar: user.avatar ? user.avatar : '',
-            school: user.school,
-            email: user.email,
+            school: user.school ? user.school : '',
+            email: user.email ? user.email : '',
         }
     } catch (error) {
         console.log(error);
@@ -159,18 +161,31 @@ const user = async userId =>{
 }
 
 const resolvers = {
-//61105aee355303b9a81ff12b
     //save User Image Profile (Avatar)
     profileImage: async (args, req) =>{
-
         //determine if a User is authanicated or not
         try {
             if(!req.isAuth){
                 throw new Error('Unauthanticated')
             }
             // data type must be String not an object
-            const image =  args.input.image
-            const  user  = await User.updateOne({_id: req.userID}, {$set:{ "avatar": image}})
+            const old_avatar  = await User.findOne({_id: req.userID}, {avatar: 1})
+            const new_avatr =  args.input.image
+
+            const s3 = new AWS.S3({
+                accessKeyId: keys.accessKey,
+                secretAccessKey: keys.secretKey,
+                Bucket: keys.bucketProfile,
+                region: keys.region
+            });
+            const params = {
+                Bucket: keys.bucketProfile,
+                Key: old_avatar.avatar
+            }
+            s3.deleteObject(params, (error, data) =>{
+                if(error) throw error
+            })
+            await User.updateOne({_id: req.userID}, {$set:{ "avatar": new_avatr}})
             return{
                 success: true
             }
@@ -181,11 +196,9 @@ const resolvers = {
 
     allPost: async (args, req) =>{
         try {
-
-            // if(!req.isAuth){
-            //     throw new Error('Unauthanticated')
-            // } 
-    
+            if(!req.isAuth){
+                throw new Error('Unauthanticated')
+            } 
             const imagePost =  await PostImage.find({$query: {},$orderby: {date: 1}});
             const textPost =  await PostText.find({$query: {},$orderby: {date: 1}});
             
@@ -196,11 +209,11 @@ const resolvers = {
 
             return sorted.map(post =>{
                 return{
-                    _id: post.id,
+                    _id: post._id,
                     ...post._doc,
                     date: new Date(post._doc.date).toDateString(),
                     owner: user.bind(this, post.owner),
-                    commnets: comments.bind(this, post.id),
+                    commnets: comments.bind(this, post._id),
                     likes: likes.bind(this, post.likes)
                 }
             }) 
@@ -215,24 +228,20 @@ const resolvers = {
             if(!req.isAuth){
                 throw new Error('Unauthanticated')
             }            
-
             const postImages = await PostImage.find({owner: req.userID})
             const postText =  await PostText.find({owner: req.userID})
 
             const newData = postImages.concat(postText)
             // sort it by new to onld by the post Date
             const sorted = await newData.sort((a, b) => b.date - a.date);
-            // pubsub.publish(TEXT_POST_CREATED, { sorted});
+
             return sorted.map(post => {
-           
                 return{
-                    _id: post.id,
+                    _id: post._id,
                     ...post._doc,  
                     date: new Date(post._doc.date).toDateString(),
-                    // comment is a functioin
-                    commnets: comments.bind(this, post.id),
+                    commnets: comments.bind(this, post._id),
                     owner:    user.bind(this, post.owner),
-                    // likes is a function
                     likes: likes.bind(this, post.likes)
                 }
             })
@@ -261,7 +270,7 @@ const resolvers = {
             // console.log(users);
             return users.map(user =>{
                 return{
-                    _id: user.id,
+                    _id: user._id,
                     firstname: user.firstname,
                     lastname: user.lastname,
                     avatar: user.avatar,
@@ -274,7 +283,6 @@ const resolvers = {
         }
     },
 
-
     // return a single Authanticated user information
     userInfo : async (args, req) =>{
         try {
@@ -284,7 +292,7 @@ const resolvers = {
             
             const user =  await User.findOne({_id: req.userID}, {password: 0})
             return{
-                _id: user.id,
+                _id: user._id,
                 email: user._doc.email,
                 firstname: user._doc.firstname,
                 lastname: user._doc.lastname,
@@ -304,7 +312,6 @@ const resolvers = {
     },
 
     //Mutation//
-
     // create a new PostImage 
     // User must be authanitcated
     createPostImage: async (args, req) =>{
@@ -312,14 +319,12 @@ const resolvers = {
             if(!req.isAuth){
                 throw new Error('Unauthanticated')
             }
-            // console.log(args);
             const postImage = new PostImage({
                 owner: args.input.owner,
                 imageAlbum: args.input.imageAlbum,
                 text: args.input.text
             })
             await postImage.save()
-            // console.log({postImage});
             return{
                screen: true
             }
@@ -523,23 +528,65 @@ const resolvers = {
                 throw new Error('Unauthanticated')
             }
             const user =  req.userID 
-            const postTextExist = await  PostImage.findOne({_id: args.input.post})
-            const postImageExist = await PostText.findOne({_id:  args.input.post})
+            const  postImageExist = await  PostImage.findOne({_id: args.input.post})
+            const postTextExist = await PostText.findOne({_id:  args.input.post})
             const userExist =  await User.findOne({_id: user}, {password: 0})
     
             let post  = postImageExist ? postImageExist : postTextExist
             if(!post || !userExist){
                 throw new Error("User or Post not found")
             }
+            var postType;
+            postImageExist ? postType = 'image' : postType = 'text'
+            //console.log(postImageExist);
+
+            if(postType === 'image'){
+                const s3 = new AWS.S3({
+                    accessKeyId: keys.accessKey,
+                    secretAccessKey: keys.secretKey,
+                    Bucket: keys.bucketPost,
+                    region: keys.region
+                });
+
+                const key  =  post.imageAlbum[0]
+                const params = {
+                    Bucket: keys.bucket,
+                    Key: key
+                }
+                s3.deleteObject(params, (error, data) =>{
+                    if(error) throw error
+                    
+                })
+            }
             await Comments.deleteMany({post: post.id})
             await post.deleteOne()
+
             return{
-                post: user
+                post: user,
+                type: postType
             }
         } catch (error) {
             throw new Error(error.message)
         }
 
+    },
+
+    getImage: async (args, req) =>{
+        const s3 = new AWS.S3({
+            accessKeyId: keys.accessKey,
+            secretAccessKey: keys.secretKey,
+            Bucket: args.input.from,
+            region: keys.region
+        });
+
+        const params =  {
+            Bucket: args.input.from,
+            Key: args.input.key
+        }
+        const image =  await s3.getObject(params).promise()
+        return{
+            image: Buffer.from(image.Body).toString('base64')
+        }
     },
 
     // Update User Password
@@ -609,21 +656,6 @@ const resolvers = {
         } catch (error) {
             //console.log(error);
             throw error
-        }
-    },
-    connection : async (args, req) =>{
-        try {
-            // if(!req.isAuth){
-            //     throw new Error('Unauthanticated')
-            // }
-
-          
-            return{
-                success: true
-            }
-            
-        } catch (error) {
-            
         }
     },
     sendCode : async (args, req) =>{
@@ -705,15 +737,6 @@ const resolvers = {
         }
 
     }
-
-
-    
-    // Subscription:{
-    //     createPostText:{
-    //         subscribe: () => pubsub.asyncIterator(TEXT_POST_CREATED)
-    //     }
-    // }
-    
 }
 
 module.exports  =  resolvers;

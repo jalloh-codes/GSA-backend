@@ -13,6 +13,7 @@ module.exports = buildSchema(`
         skills: [String]
         interest: [String]
     }
+
     type Verify {
         _id: ID!
         user: User!
@@ -26,6 +27,7 @@ module.exports = buildSchema(`
         likes: [ID!]!
         date: String!
     }
+
     type Comment {
         _id: ID!
         post: ID!
@@ -34,6 +36,7 @@ module.exports = buildSchema(`
         likes: [User]
         date: String
     }
+
     type UserPostInfo{
         _id: ID!
         email: String!
@@ -46,11 +49,11 @@ module.exports = buildSchema(`
     type PostImage {
         _id: ID!
         owner: User
-        imageAlbum: [String!]
-        text: String!
+        imageAlbum: [String]
+        text: String
         commnets: [Comment]
-        likes: [User]!
-        date: String!
+        likes: [User]
+        date: String
     }
 
     input AccountInput {
@@ -119,22 +122,30 @@ module.exports = buildSchema(`
         user: ID!
     }
 
+    input imageReq{
+        key: String!
+        from: String!
+    }
+
     type Result {
         success: Boolean
-        _id: ID!
+        _id: ID
+        type: String
+        image: String
     }
 
     type RootQuery {
-        postText: [PostText!]!
-        commnets: [Comment!]!
-        postImage: [PostImage!]!
+        postText: [PostText]
+        commnets: [Comment]
+        postImage: [PostImage]
         userInfo: User
         userPosts: [PostImage]
         allPost: [PostImage]
         searchUser(searchText: String!):[User]
         connection: Result
         conn(input: AccountInput): Result
-    }   
+    }
+       
     type RootMutation { 
         createPostText(input: PostTextInput):Result
         createCommnet(input: CommentInput): Comment
@@ -149,6 +160,7 @@ module.exports = buildSchema(`
         verifyUser(input: verify): AuthPayload
         sendCode(input: resend): Result 
         con(input: AccountInput): Result
+        getImage(input: imageReq): Result
     }
 
     type Subscription {

@@ -11,7 +11,8 @@ const auth =  require('./middleware/auth');
 const app = express();
 const User = require('./model/User');
 const bcrypt =  require('bcryptjs');
-
+const AWS = require('aws-sdk');
+const aws = require('./config/keys')
 
 // must required the front id address Host Ip (localy or on a hosted server)
 app.use(cors({origin: "*",  }));
@@ -19,18 +20,31 @@ app.use(cors({origin: "*",  }));
 //apply  Authanication to the Apiu route
 app.use(auth);
 
-// app.get('/confirmation/', async (req, res) => {
-//   // const compare = await bcrypt.compareSync(args.input.password, accountExist.password)
+app.get('/confirmation/:key', async (req, res) => {
+  const s3 = new AWS.S3({
+    accessKeyId: aws.accessKey,
+    secretAccessKey: aws.secretKey,
+    Bucket: aws.bucketPost,
+    region: aws.region
+});
+  const getImageFromS3 =  async (key) =>{
+    const params =  {
+        Bucket: aws.bucketPost,
+        Key: key
+    }
+    const img = await s3.getObject(params).createReadStream()
+    // // const img = await s3.getObject(params).promise();
+    console.log(img);
+    return img
+  }
+  const re = await getImageFromS3(req.params.key);
 
-//   // console.log('convirmed');
-//   return res.redirect('http://localhost:8080/verified');
-//   // return({
-//   //   html: `<b>Hello user?</b>
-//   //           <div> 
-//   //               <p> Pleace verify your email addredd</p>
-//   //           </div>`
-//   // })
-// });
+  console.log(re);
+  console.log(req.params.key);
+  return res.json({
+    status: 'hello'
+  })
+});
 
 
 
