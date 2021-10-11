@@ -171,19 +171,24 @@ const resolvers = {
             const old_avatar  = await User.findOne({_id: req.userID}, {avatar: 1})
             const new_avatr =  args.input.image
 
+
             const s3 = new AWS.S3({
                 accessKeyId: keys.accessKey,
                 secretAccessKey: keys.secretKey,
                 Bucket: keys.bucketProfile,
                 region: keys.region
             });
-            const params = {
-                Bucket: keys.bucketProfile,
-                Key: old_avatar.avatar
+            
+            if(old_avatar.avatar){
+                const params = {
+                    Bucket: keys.bucketProfile,
+                    Key: old_avatar.avatar
+                }
+
+                s3.deleteObject(params, (error, data) =>{
+                    if(error) throw error
+                })
             }
-            s3.deleteObject(params, (error, data) =>{
-                if(error) throw error
-            })
             await User.updateOne({_id: req.userID}, {$set:{ "avatar": new_avatr}})
             return{
                 success: true
