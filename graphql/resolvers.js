@@ -115,7 +115,7 @@ const sendMailFun = async (id) =>{
         }
         // create reusable transporter object using the default SMTP transport
         let transporter = nodemailer.createTransport({
-            service: "Gmail",
+            service: "gmail",
             auth: {
             user: keys.email, // generated ethereal user
             pass: keys.code, // generated ethereal password
@@ -138,7 +138,6 @@ const sendMailFun = async (id) =>{
         let success  = true
         return success
 }
-
 
 
 //return a single user by providing the User ID
@@ -362,7 +361,6 @@ const resolvers = {
     signup: async (args) =>{
         try {
             const accountExist = await User.findOne({email: args.input.email}, {password: 0})
-
             if(accountExist){
                 throw new Error("Email already existed")
             }
@@ -371,6 +369,7 @@ const resolvers = {
                 return expression.test(String(email).toLowerCase())
             }
             const hashPassword = await bcrypt.hash(args.input.password, 12);
+            
             const user = new User({
                 email: args.input.email,
                 password: hashPassword,
@@ -385,7 +384,10 @@ const resolvers = {
              
             if(validate(user.email)){
                 const result = await user.save()
+                console.log(result);
                 const send = await sendMailFun(result._id)
+
+                console.log(send);
                 return{
                     success: send ? true : false,
                     _id: result._id
@@ -694,13 +696,14 @@ const resolvers = {
             let transporter = nodemailer.createTransport({
                 service: "Gmail",
                 auth: {
-                user: "blessmuss@gmail.com", // generated ethereal user
-                pass: "NakryOutLaw@1", // generated ethereal password
+                user: `${keys.email}`, // generated ethereal user
+                pass: `${keys.code}`, // generated ethereal password
                 },
             });
+            
             //send mail with defined transport object
             let info = await transporter.sendMail({
-                from: '"GSA PORTAL 🇬🇳 " <blessmuss@gmail.com>', // sender address
+                from: `"GSA PORTAL 🇬🇳 " <${keys.email}>`, // sender address
                 to: `${accountExist.email}`, // list of receivers
                 subject: "GSA PORTAL 🇬🇳", // Subject line
                 text: "Hello New User 🤗", // plain text body
@@ -713,7 +716,7 @@ const resolvers = {
                         </div>`, // html body
             }); 
 
-            
+            console.log(info);
             const payload = await {
                 email: accountExist.email,
                 id: accountExist._id,

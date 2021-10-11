@@ -9,6 +9,8 @@ const port = process.env.PORT || 8080;
 const cors = require('cors')
 const auth =  require('./middleware/auth');
 const app = express();
+// const http = require('http').createServer(app)
+// const io = require('socket.io').listen(http)
 
 require('dotenv').config()
 // must required the front id address Host Ip (localy or on a hosted server)
