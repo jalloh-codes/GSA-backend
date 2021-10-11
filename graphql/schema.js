@@ -124,7 +124,6 @@ module.exports = buildSchema(`
 
     input imageReq{
         key: String!
-        from: String!
     }
 
     type Result {

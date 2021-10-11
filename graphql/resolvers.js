@@ -7,12 +7,8 @@ const keys = require('../config/keys')
 const bcrypt =  require('bcryptjs')
 const jwt =  require('jsonwebtoken');
 const { Error } = require('mongoose');
-const { PubSub } =  require('graphql-subscriptions');
 const nodemailer = require("nodemailer");
-const pubsub = new PubSub();
 const AWS = require('aws-sdk');
-const aws = keys
-const fs = require('fs')
 // return all post owned by  a user in the User document (Table)
 // Required user ID 
 // PostImage && PostText is returned
@@ -60,13 +56,12 @@ const likes = async (idArr) =>{
         }
     }
 
-    
     return users.map(user =>{
         return{
             _id: user._id,
             firstname: user.firstname,
             lastname: user.lastname,
-            avatar: user.avatar ? user.avatar : '',
+            avatar: user.avatar ? getImageFromS3(user.avatar, 'gsa-profile-image') : '' ,
             school: user.school,
             password: null
         }
@@ -139,17 +134,34 @@ const sendMailFun = async (id) =>{
         return success
 }
 
+const getImageFromS3  = async (key, from) =>{
+    const s3 = new AWS.S3({
+        accessKeyId: keys.accessKey,
+        secretAccessKey: keys.secretKey,
+        Bucket: from,
+        region: keys.region
+    });
+
+    const avatar = await s3.getSignedUrl("getObject",{
+        Bucket: from,
+        Key: key,
+        Expires: 3600*120
+    })
+
+    return avatar
+}
 
 //return a single user by providing the User ID
 //Password must b set to Null when returning data from the User Document 
 const user = async userId =>{
     try {
         const user =  await User.findOne({_id: userId}, {password: 0})
+        
         return{
             _id: user._id ?  user._id : '',
             firstname: user.firstname ? user.firstname : '',
             lastname: user.lastname ? user.lastname : '',
-            avatar: user.avatar ? user.avatar : '',
+            avatar: user.avatar ? getImageFromS3(user.avatar, 'gsa-profile-image') : '' ,
             school: user.school ? user.school : '',
             email: user.email ? user.email : '',
         }
@@ -200,9 +212,9 @@ const resolvers = {
 
     allPost: async (args, req) =>{
         try {
-            if(!req.isAuth){
-                throw new Error('Unauthanticated')
-            } 
+            // if(!req.isAuth){
+            //     throw new Error('Unauthanticated')
+            // } 
             const imagePost =  await PostImage.find({$query: {},$orderby: {date: 1}});
             const textPost =  await PostText.find({$query: {},$orderby: {date: 1}});
             
@@ -212,11 +224,13 @@ const resolvers = {
             const sorted = await newData.sort((a, b) => b.date - a.date);
 
             return sorted.map(post =>{
+                let image = post.imageAlbum
                 return{
                     _id: post._id,
                     ...post._doc,
                     date: new Date(post._doc.date).toDateString(),
                     owner: user.bind(this, post.owner),
+                    imageAlbum: [image  ? getImageFromS3(image[0], 'gsa-image-store') : null],
                     commnets: comments.bind(this, post._id),
                     likes: likes.bind(this, post.likes)
                 }
@@ -240,10 +254,12 @@ const resolvers = {
             const sorted = await newData.sort((a, b) => b.date - a.date);
 
             return sorted.map(post => {
+                let image = post.imageAlbum
                 return{
                     _id: post._id,
                     ...post._doc,  
                     date: new Date(post._doc.date).toDateString(),
+                    imageAlbum: [image  ? getImageFromS3(image[0], 'gsa-image-store') : null],
                     commnets: comments.bind(this, post._id),
                     owner:    user.bind(this, post.owner),
                     likes: likes.bind(this, post.likes)
@@ -389,10 +405,9 @@ const resolvers = {
              
             if(validate(user.email)){
                 const result = await user.save()
-                console.log(result);
+            
                 const send = await sendMailFun(result._id)
 
-                console.log(send);
                 return{
                     success: send ? true : false,
                     _id: result._id
@@ -586,13 +601,30 @@ const resolvers = {
             region: keys.region
         });
 
+
         const params =  {
             Bucket: args.input.from,
             Key: args.input.key
         }
-        const image =  await s3.getObject(params).promise()
+
+        const para = {
+            Bucket: args.input.from,
+            Key: args.input.key,
+            Expires: 100
+        }
+
+        const signurl = await s3.getSignedUrl("getObject",{
+            Bucket: args.input.from,
+            Key: args.input.key,
+            Expires: 3600*120
+        })
+        
+        console.log(signurl);
+        // const image =  await s3.getObject(params).promise()
+        ////Buffer.from(image.Body).toString('base64')
+ 
         return{
-            image: Buffer.from(image.Body).toString('base64')
+            image: signurl 
         }
     },
 
