@@ -280,7 +280,6 @@ const resolvers = {
     },
 
     getUser: async (args, req) =>{
-        console.log(args.user)
         const id = args.user //args.user
        
         const info = await user(id)
