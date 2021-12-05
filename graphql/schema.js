@@ -125,12 +125,19 @@ module.exports = buildSchema(`
     input imageReq{
         key: String!
     }
+    input userReq{
+        user: ID
+    }
 
     type Result {
         success: Boolean
         _id: ID
         type: String
         image: String
+    }
+    type userResult{
+        info: User
+        posts: [PostImage]
     }
 
     type RootQuery {
@@ -143,6 +150,7 @@ module.exports = buildSchema(`
         searchUser(searchText: String!):[User]
         connection: Result
         conn(input: AccountInput): Result
+        getUser(user: String!): userResult
     }
        
     type RootMutation { 
@@ -160,6 +168,7 @@ module.exports = buildSchema(`
         sendCode(input: resend): Result 
         con(input: AccountInput): Result
         getImage(input: imageReq): Result
+        
     }
 
     type Subscription {

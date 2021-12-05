@@ -24,22 +24,28 @@ const uniqueId = () => {
 // uniqueId()
 
 
-const posts = async owner =>{
+const Posts = async owner =>{
     // owner == user ID from the User Document (Table)
     try {
-        const postsText = await PostText.find({owner: owner})
-        const postImage  =  await PostImage.find({owner: owner})
+        const postImages = await PostImage.find({owner: owner})
+        const postText =  await PostText.find({owner: owner})
 
         // concatinate PostImage && PostText array of object
-        const newData = postImage.concat(postsText)
-        return newData.map(post =>{
+        const newData = postImages.concat(postText)
+
+        // sort it by new to onld by the post Date
+        const sorted = await newData.sort((a, b) => b.date - a.date);
+
+        return sorted.map(post => {
+            let image = post.imageAlbum
             return{
-                ...post._doc,
                 _id: post._id,
+                ...post._doc,  
                 date: new Date(post._doc.date).toDateString(),
-                // comment is a function
-                // return all comment from a Post by Profiding the Post ID
+                imageAlbum: [image  ? getImageFromS3(image[0], 'gsa-image-store') : null],
                 commnets: comments.bind(this, post._id),
+                owner:    user.bind(this, post.owner),
+                likes: likes.bind(this, post.likes)
             }
         })
     } catch (error) {
@@ -155,8 +161,8 @@ const getImageFromS3  = async (key, from) =>{
 //Password must b set to Null when returning data from the User Document 
 const user = async userId =>{
     try {
+
         const user =  await User.findOne({_id: userId}, {password: 0})
-        
         return{
             _id: user._id ?  user._id : '',
             firstname: user.firstname ? user.firstname : '',
@@ -164,6 +170,7 @@ const user = async userId =>{
             avatar: user.avatar ? getImageFromS3(user.avatar, 'gsa-profile-image') : '' ,
             school: user.school ? user.school : '',
             email: user.email ? user.email : '',
+            major: user.major ? user.major : ''
         }
     } catch (error) {
         console.log(error);
@@ -212,9 +219,9 @@ const resolvers = {
 
     allPost: async (args, req) =>{
         try {
-            // if(!req.isAuth){
-            //     throw new Error('Unauthanticated')
-            // } 
+            if(!req.isAuth){
+                throw new Error('Unauthanticated')
+            } 
             const imagePost =  await PostImage.find({$query: {},$orderby: {date: 1}});
             const textPost =  await PostText.find({$query: {},$orderby: {date: 1}});
             
@@ -245,7 +252,8 @@ const resolvers = {
         try {
             if(!req.isAuth){
                 throw new Error('Unauthanticated')
-            }            
+            }
+                        
             const postImages = await PostImage.find({owner: req.userID})
             const postText =  await PostText.find({owner: req.userID})
 
@@ -268,6 +276,20 @@ const resolvers = {
 
         } catch (error) {
             throw new Error(error.message)
+        }
+    },
+
+    getUser: async (args, req) =>{
+        console.log(args.user)
+        const id = args.user //args.user
+       
+        const info = await user(id)
+
+        const userPost = await Posts(id)
+    
+        return{
+            info: info,
+            posts: userPost
         }
     },
 
