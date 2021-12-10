@@ -459,7 +459,7 @@ const resolvers = {
                     token: '',
                     email: ''
                 }
-            }      
+            }     
             const compare = await bcrypt.compareSync(args.input.password, accountExist.password)
 
             if(!compare){
