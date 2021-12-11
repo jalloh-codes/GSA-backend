@@ -218,10 +218,12 @@ const resolvers = {
     },
 
     allPost: async (args, req) =>{
+        console.log(req);
         try {
             if(!req.isAuth){
                 throw new Error('Unauthanticated')
             } 
+            console.log(req);
             const imagePost =  await PostImage.find({$query: {},$orderby: {date: 1}});
             const textPost =  await PostText.find({$query: {},$orderby: {date: 1}});
             
@@ -229,7 +231,7 @@ const resolvers = {
             const newData = imagePost.concat(textPost);
             //sort by by post date
             const sorted = await newData.sort((a, b) => b.date - a.date);
-
+          
             return sorted.map(post =>{
                 let image = post.imageAlbum
                 return{
@@ -584,6 +586,7 @@ const resolvers = {
             //console.log(postImageExist);
 
             if(postType === 'image'){
+    
                 const s3 = new AWS.S3({
                     accessKeyId: keys.accessKey,
                     secretAccessKey: keys.secretKey,
@@ -593,7 +596,7 @@ const resolvers = {
 
                 const key  =  post.imageAlbum[0]
                 const params = {
-                    Bucket: keys.bucket,
+                    Bucket: keys.bucketPost,
                     Key: key
                 }
                 s3.deleteObject(params, (error, data) =>{
@@ -603,13 +606,15 @@ const resolvers = {
             }
             await Comments.deleteMany({post: post.id})
             await post.deleteOne()
-
+            console.log('delete');
             return{
                 post: user,
                 type: postType
             }
         } catch (error) {
+            console.log(error);
             throw new Error(error.message)
+            
         }
 
     },
