@@ -218,12 +218,10 @@ const resolvers = {
     },
 
     allPost: async (args, req) =>{
-        console.log(req);
         try {
             if(!req.isAuth){
                 throw new Error('Unauthanticated')
             } 
-            console.log(req);
             const imagePost =  await PostImage.find({$query: {},$orderby: {date: 1}});
             const textPost =  await PostText.find({$query: {},$orderby: {date: 1}});
             
@@ -606,7 +604,7 @@ const resolvers = {
             }
             await Comments.deleteMany({post: post.id})
             await post.deleteOne()
-            console.log('delete');
+           
             return{
                 post: user,
                 type: postType
