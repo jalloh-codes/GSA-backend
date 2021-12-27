@@ -296,25 +296,45 @@ const resolvers = {
     // search a user by fisrtname or lastname
     searchUser:  async (args, req) =>{
         try {
-            await User.createIndex(
-                {
-                  firstname: "text",
-                  lastname: "text"
-                }
-              )
-            const query = {$text: {$search: ` cellou`}};
-            const projection ={
-                _id: 0,
-                firstname: 1
-            }
-            const users = await User.find({$text:{ $search:"cellou"}})
-            // console.log(users);
+
+            const searhName = args.name
+
+            // const searchString = new RegExp(userName, 'ig');
+             
+
+            const users = await User.aggregate([{
+                
+                "$search":{
+                    "index": "default",
+                    "text": {
+                        "query": `${searhName}`,
+                        "path": ["firstname", "lastname"]
+                    }
+                    
+                },
+                
+            }])
+
+
+
+
+          
+            // const users = await User.aggregate()
+            // .project({
+            //     fullname: { $concat: ['$firstname', ' ', '$lastname']},
+            //     firstname: 1,
+            //     lastname: 1,
+            //     avatar: 1,
+            //     school: 1,
+            // })
+            // .match({ fullname: searchString })
+
             return users.map(user =>{
                 return{
                     _id: user._id,
                     firstname: user.firstname,
                     lastname: user.lastname,
-                    avatar: user.avatar,
+                    avatar: user.avatar ? getImageFromS3(user.avatar, 'gsa-profile-image') : '' ,
                     school: user.school,
                     password: null
                 }
@@ -339,7 +359,7 @@ const resolvers = {
                 lastname: user._doc.lastname,
                 school: user._doc.school,
                 skills: user._doc.skills ? user._doc.skills : '' ,
-                avatar: user._doc.avatar ? user._doc.avatar : '',
+                avatar: user.avatar ? getImageFromS3(user.avatar, 'gsa-profile-image') : '' ,
                 major: user._doc.major ? user._doc.major: ' ',
                 role: user._doc.role ? user._doc.role: ' ',
                 interest: user._doc.interest ? user._doc.interest: '',
@@ -573,11 +593,11 @@ const resolvers = {
             const user =  req.userID 
             const  postImageExist = await  PostImage.findOne({_id: args.input.post})
             const postTextExist = await PostText.findOne({_id:  args.input.post})
-            const userExist =  await User.findOne({_id: user}, {password: 0})
+            //const userExist =  await User.findOne({_id: user}, {password: 0})
     
             let post  = postImageExist ? postImageExist : postTextExist
-            if(!post || !userExist){
-                throw new Error("User or Post not found")
+            if(!post){
+                throw new Error("Post not found")
             }
             var postType;
             postImageExist ? postType = 'image' : postType = 'text'
@@ -593,15 +613,21 @@ const resolvers = {
                 });
 
                 const key  =  post.imageAlbum[0]
+                console.log(key);
+                //console.assert()
                 const params = {
                     Bucket: keys.bucketPost,
                     Key: key
                 }
                 s3.deleteObject(params, (error, data) =>{
-                    if(error) throw error
+                    if(error) {
+                        console.log(error);
+                        throw new Error(error)
+                    }
                     
                 })
             }
+            //console.assert()
             await Comments.deleteMany({post: post.id})
             await post.deleteOne()
            
@@ -643,7 +669,6 @@ const resolvers = {
             Expires: 3600*120
         })
         
-        console.log(signurl);
         // const image =  await s3.getObject(params).promise()
         ////Buffer.from(image.Body).toString('base64')
  

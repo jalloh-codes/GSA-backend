@@ -147,7 +147,7 @@ module.exports = buildSchema(`
         userInfo: User
         userPosts: [PostImage]
         allPost: [PostImage]
-        searchUser(searchText: String!):[User]
+        searchUser(name: String):[User]
         connection: Result
         conn(input: AccountInput): Result
         getUser(user: String!): userResult
