@@ -315,20 +315,6 @@ const resolvers = {
                 
             }])
 
-
-
-
-          
-            // const users = await User.aggregate()
-            // .project({
-            //     fullname: { $concat: ['$firstname', ' ', '$lastname']},
-            //     firstname: 1,
-            //     lastname: 1,
-            //     avatar: 1,
-            //     school: 1,
-            // })
-            // .match({ fullname: searchString })
-
             return users.map(user =>{
                 return{
                     _id: user._id,
