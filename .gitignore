@@ -1,5 +1,5 @@
 node_modules
 # config
 config/passport.js
-# config/keys.js
+config/keys.js
 .DS_Store
