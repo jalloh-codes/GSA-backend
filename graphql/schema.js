@@ -54,6 +54,7 @@ module.exports = buildSchema(`
         commnets: [Comment]
         likes: [User]
         date: String
+        userLiked: Boolean
     }
 
     input AccountInput {

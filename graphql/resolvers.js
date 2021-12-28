@@ -222,6 +222,7 @@ const resolvers = {
             if(!req.isAuth){
                 throw new Error('Unauthanticated')
             } 
+            const authID = req.userID 
             const imagePost =  await PostImage.find({$query: {},$orderby: {date: 1}});
             const textPost =  await PostText.find({$query: {},$orderby: {date: 1}});
             
@@ -239,7 +240,8 @@ const resolvers = {
                     owner: user.bind(this, post.owner),
                     imageAlbum: [image  ? getImageFromS3(image[0], 'gsa-image-store') : null],
                     commnets: comments.bind(this, post._id),
-                    likes: likes.bind(this, post.likes)
+                    likes: likes.bind(this, post.likes),
+                    userLiked: post.likes.includes(authID)
                 }
             }) 
         } catch (error) {
@@ -249,20 +251,21 @@ const resolvers = {
     
     //get a specified user posts by _id
     userPosts: async (args, req) =>{
+        
         try {
             if(!req.isAuth){
                 throw new Error('Unauthanticated')
             }
-                        
+            const authID = req.userID          
             const postImages = await PostImage.find({owner: req.userID})
             const postText =  await PostText.find({owner: req.userID})
 
             const newData = postImages.concat(postText)
             // sort it by new to onld by the post Date
             const sorted = await newData.sort((a, b) => b.date - a.date);
-
             return sorted.map(post => {
                 let image = post.imageAlbum
+                
                 return{
                     _id: post._id,
                     ...post._doc,  
@@ -270,7 +273,8 @@ const resolvers = {
                     imageAlbum: [image  ? getImageFromS3(image[0], 'gsa-image-store') : null],
                     commnets: comments.bind(this, post._id),
                     owner:    user.bind(this, post.owner),
-                    likes: likes.bind(this, post.likes)
+                    likes: likes.bind(this, post.likes),
+                    userLiked: post.likes.includes(authID)
                 }
             })
 
@@ -280,6 +284,9 @@ const resolvers = {
     },
 
     getUser: async (args, req) =>{
+        if(!req.isAuth){
+            throw new Error('Unauthanticated')
+        }
         const id = args.user //args.user
        
         const info = await user(id)
@@ -296,7 +303,9 @@ const resolvers = {
     // search a user by fisrtname or lastname
     searchUser:  async (args, req) =>{
         try {
-
+            if(!req.isAuth){
+                throw new Error('Unauthanticated')
+            } 
             const searhName = args.name
 
             // const searchString = new RegExp(userName, 'ig');
@@ -630,6 +639,10 @@ const resolvers = {
     },
 
     getImage: async (args, req) =>{
+
+        if(!req.isAuth){
+            throw new Error('Unauthanticated')
+        } 
         const s3 = new AWS.S3({
             accessKeyId: keys.accessKey,
             secretAccessKey: keys.secretKey,
@@ -666,6 +679,9 @@ const resolvers = {
     // Update User Password
     updatePassword: async (args, req) =>{
         try {
+            if(!req.isAuth){
+                throw new Error('Unauthanticated')
+            } 
             const accountExist = await User.findOne({email: args.input.email}, {password: 0})
    
             if(!accountExist){
