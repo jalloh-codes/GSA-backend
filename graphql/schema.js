@@ -51,7 +51,7 @@ module.exports = buildSchema(`
         owner: User
         imageAlbum: [String]
         text: String
-        commnets: [Comment]
+        commnets: String
         likes: [User]
         date: String
         userLiked: Boolean
@@ -141,6 +141,10 @@ module.exports = buildSchema(`
         posts: [PostImage]
     }
 
+    type test{
+        status: Boolean
+    }
+
     type RootQuery {
         postText: [PostText]
         commnets: [Comment]
@@ -149,9 +153,11 @@ module.exports = buildSchema(`
         userPosts: [PostImage]
         allPost: [PostImage]
         searchUser(name: String):[User]
+        lookUp(name: String): [User]
         connection: Result
         conn(input: AccountInput): Result
         getUser(user: String!): userResult
+        getComments(post: ID!): [Comment]
     }
        
     type RootMutation { 

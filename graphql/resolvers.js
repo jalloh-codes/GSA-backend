@@ -23,6 +23,11 @@ const uniqueId = () => {
 
 // uniqueId()
 
+const commentLen =  async owner =>{
+    const len = await Comments.find({post: owner}).count()
+
+    return len
+}
 
 const Posts = async owner =>{
     // owner == user ID from the User Document (Table)
@@ -43,7 +48,7 @@ const Posts = async owner =>{
                 ...post._doc,  
                 date: new Date(post._doc.date).toDateString(),
                 imageAlbum: [image  ? getImageFromS3(image[0], 'gsa-image-store') : null],
-                commnets: comments.bind(this, post._id),
+                commnets: commentLen.bind(this, post._id),
                 owner:    user.bind(this, post.owner),
                 likes: likes.bind(this, post.likes)
             }
@@ -157,6 +162,23 @@ const getImageFromS3  = async (key, from) =>{
     return avatar
 }
 
+const getUser = async (searhName) =>{
+    const users = await User.aggregate([{
+                
+        "$search":{
+            "index": "default",
+            "text": {
+                "query": `${searhName}`,
+                "path": ["firstname", "lastname"],
+                
+            },
+             
+        },
+        
+    }])
+    return users
+}
+
 //return a single user by providing the User ID
 //Password must b set to Null when returning data from the User Document 
 const user = async userId =>{
@@ -239,7 +261,7 @@ const resolvers = {
                     date: new Date(post._doc.date).toDateString(),
                     owner: user.bind(this, post.owner),
                     imageAlbum: [image  ? getImageFromS3(image[0], 'gsa-image-store') : null],
-                    commnets: comments.bind(this, post._id),
+                    commnets: commentLen.bind(this, post._id),
                     likes: likes.bind(this, post.likes),
                     userLiked: post.likes.includes(authID)
                 }
@@ -271,7 +293,7 @@ const resolvers = {
                     ...post._doc,  
                     date: new Date(post._doc.date).toDateString(),
                     imageAlbum: [image  ? getImageFromS3(image[0], 'gsa-image-store') : null],
-                    commnets: comments.bind(this, post._id),
+                    commnets: commentLen.bind(this, post._id),
                     owner:    user.bind(this, post.owner),
                     likes: likes.bind(this, post.likes),
                     userLiked: post.likes.includes(authID)
@@ -299,7 +321,46 @@ const resolvers = {
         }
     },
 
-    //TODO
+    lookUp: async (args, req) =>{
+        if(!req.isAuth){
+            throw new Error('Unauthanticated')
+        }
+        let searhName = args.name
+        const authID = await  req.userID
+        const getSchool = await User.findOne({_id: authID} , {school: 1})
+        if(searhName === 'all'){
+            users = await User.find({school: getSchool.school}, {_id: authID}, {password: 0})
+
+        }else{
+            users = await getUser(searhName)
+
+        }
+
+        console.log(users);
+        return users.map(user =>{
+            return{
+                _id: user._id,
+                firstname: user.firstname,
+                lastname: user.lastname,
+                avatar: user.avatar ? getImageFromS3(user.avatar, 'gsa-profile-image') : '' ,
+                school: user.school,
+                password: null
+            }
+        })
+    },
+
+    getComments: async (args, req)=>{
+        if(!req.isAuth){
+            throw new Error('Unauthanticated')
+        }
+        const postID = args.post
+
+        const commentsData = await comments(postID);
+        console.log(commentsData);
+        return commentsData
+        
+    },
+
     // search a user by fisrtname or lastname
     searchUser:  async (args, req) =>{
         try {
@@ -307,23 +368,10 @@ const resolvers = {
                 throw new Error('Unauthanticated')
             } 
             const searhName = args.name
-
+            const authID = await  req.userID
             // const searchString = new RegExp(userName, 'ig');
-             
-
-            const users = await User.aggregate([{
-                
-                "$search":{
-                    "index": "default",
-                    "text": {
-                        "query": `${searhName}`,
-                        "path": ["firstname", "lastname"]
-                    }
-                    
-                },
-                
-            }])
-
+            const users = await getUser(searhName)
+            console.log(users);
             return users.map(user =>{
                 return{
                     _id: user._id,
@@ -608,7 +656,7 @@ const resolvers = {
                 });
 
                 const key  =  post.imageAlbum[0]
-                console.log(key);
+               
                 //console.assert()
                 const params = {
                     Bucket: keys.bucketPost,
@@ -804,7 +852,7 @@ const resolvers = {
                         </div>`, // html body
             }); 
 
-            console.log(info);
+           
             const payload = await {
                 email: accountExist.email,
                 id: accountExist._id,

@@ -11,8 +11,7 @@ const Schema = mongoose.Schema
 const commnetSchema = new Schema({
     post:{
         type:   Schema.Types.ObjectId,
-        ref: "PostText" ? "PostText": "PostImage",
-        // postImage 
+        ref: "PostText" ? "PostText": "PostImage", 
     },
     text:{
         type: String
