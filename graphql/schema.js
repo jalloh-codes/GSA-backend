@@ -117,12 +117,18 @@ module.exports = buildSchema(`
     input verify{
         user: ID!
         code: String!
+        verifyType: String!
     }
 
-    input resend{
-        user: ID!
+    input resend {
+        user: String!
     }
 
+    input resendCode{
+        email: String!
+    }
+
+   
     input imageReq{
         key: String!
     }
@@ -159,7 +165,7 @@ module.exports = buildSchema(`
         getUser(user: String!): userResult
         getComments(post: ID!): [Comment]
     }
-       
+    
     type RootMutation { 
         createPostText(input: PostTextInput):Result
         createCommnet(input: CommentInput): Comment
