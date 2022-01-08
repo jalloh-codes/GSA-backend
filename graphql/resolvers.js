@@ -92,7 +92,7 @@ const comments =  async owner =>{
     
     try {
         const comments = await Comments.find({post: owner})
-        return comments.map(comment =>{
+        return comments.map(async comment =>{
             return{
                 ...comment._doc,
                 _id: comment._id,  
@@ -100,7 +100,7 @@ const comments =  async owner =>{
                 //user is a function
                 // Required User ID it return user information
                 // Return firstName, Lastname, school, email, Avatar
-                byUser: user.bind(this, comment.byUser)
+                byUser: await user.bind(this, comment.byUser)
             }
         })
     } catch (error) {
@@ -373,7 +373,8 @@ const resolvers = {
         const postID = args.post
 
         const commentsData = await comments(postID);
-      
+        
+        //console.log(commentsData);
         return commentsData
         
     },
@@ -598,7 +599,13 @@ const resolvers = {
             const result = await comment.save()
             post.commnets.push(comment);
             await post.save()
-            
+            // const postID  = await result.post
+            // // console.log(postID);
+            // const commentsData = await comments(postID);
+            // console.log(commentsData.length);
+            // return commentsData
+            // // console.log(commentsData);
+            // //console.log(result);
             return{
                 ...result._doc
             }
