@@ -9,6 +9,5 @@ module.exports = {
     accessKey: 'AKIAVEQU6EBCSI4Z437G',
     secretKey: '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',
 } 
-
 //config
 //git rm -r --cached .
