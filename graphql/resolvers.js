@@ -963,14 +963,12 @@ const resolvers = {
         room = room.replace(' ', '')
        
         const messages = await Message.find({room: room})
-        console.log('messages');
         return messages.map(msg =>{
             return{
                 _id: msg._id,
                 author: user.bind(this, msg.author),
                 body: msg.body,
                 createAt: new Date(msg._doc.createAt).toDateString(),
-                //new Date(message._doc.createAt).toDateString()
             }
         })
 
