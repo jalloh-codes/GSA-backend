@@ -941,23 +941,6 @@ const resolvers = {
         }
 
     },
-    // sendMessage: async (args, req) =>{
-
-    //     const message = Message({
-    //         room: args.input.room,
-    //         author: args.input.author,
-    //         body: args.input.body,
-    //         createAt: args.input.createAt
-    //     })
-    //     await message.save()
-    //     return{
-    //         _id: message._id,
-    //         author: user.bind(this, message.author),
-    //         body: message.body,
-    //         createAt: message._doc.createAt 
-    //         //new Date(message._doc.createAt).toDateString()
-    //     }
-    // },
     getMessage: async (args, req) =>{
         let room  = args.room 
         room = room.replace(' ', '')
