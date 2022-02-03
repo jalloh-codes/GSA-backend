@@ -2,41 +2,47 @@ const express = require('express');
 const graphqlHttp = require('express-graphql').graphqlHTTP;
 const mongoose =  require('mongoose');
 // mongoose.set('useCreateIndex', true);
-const graphqlSchema = require('./graphql/schema')
-const graphqlResolver = require('./graphql/resolvers')
+const typeDefs = require('./graphql/schema')
+const resolvers = require('./graphql/resolvers')
 const db = require('./config/keys').mongoURI;
 const port = process.env.PORT || 8080;
 const cors = require('cors')
 const auth =  require('./middleware/auth'); 
 const app = express();
+const  user = require('./model/User')
 const http = require('http')
 const socketio = require('socket.io')
 
 require('dotenv').config()
 
-const server = http.createServer(app)
-const io = socketio(server)
-// must required the front id address Host Ip (localy or on a hosted server)
-app.use(cors({origin: "*",  }));
 
-io.on("connection", socket =>{
-  //console.log("a user connected :D");
-  console.log(socket.id);
-  socket.on('chat', msg =>{
-    console.log(msg);
-    io.emit(msg);
-    // socket.on('disconnect', () => {
-    //   console.log('user disconnected');
-    // });
-  })
+const server = http.createServer(app)
+// must required the front id address Host Ip (localy or on a hosted server)
+//app.use(cors({origin: "*",  }));
+
+const io = socketio(server, {
+  
+  cors:{
+    origin: '*'
+  }
 })
+// origin: 'http://localhost:8080'
+
+// io.on('connection', (socket) => {
+//   console.log('a user connected');
+//   // console.log(socket);
+//   socket.on('disconnect', () => {
+//     console.log('user disconnected');
+//   });
+// })
+// const pubsub = new PubSub();
 
 //apply  Authanication to the Api route
 app.use(auth);
 
 app.use('/graphql',  graphqlHttp({
-   schema: graphqlSchema,
-   rootValue: graphqlResolver,
+   schema: typeDefs,
+   rootValue: resolvers,
    graphiql: true
 }))
 
@@ -51,7 +57,14 @@ mongoose.connect(db, {useUnifiedTopology: true, useNewUrlParser: true})
     process.exit();
 });
 
+app.get('/msg', (req, res) =>{
+  console.log('HELLO');
+  return res.json({name: "GSA"})
+})
+
+require('./middleware/socket')(app, io, user)
+
 // listen for requests
 server.listen(port, () => {
-    console.log(`Server is running on port ${port}.`);
+  console.log(`Server is running on port ${port}.`);
 });

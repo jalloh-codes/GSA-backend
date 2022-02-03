@@ -57,6 +57,14 @@ module.exports = buildSchema(`
         userLiked: Boolean
     }
 
+    type Message {
+        _id: ID
+        room: String
+        author: User
+        body: String
+        createAt: String
+    }
+
     input AccountInput {
         email: String!
         password: String!
@@ -136,6 +144,13 @@ module.exports = buildSchema(`
         user: ID
     }
 
+    input sendMsg {
+        room: String!
+        author: ID!
+        body: String
+        createAt: String!
+    }
+
     type Result {
         success: Boolean
         _id: ID
@@ -151,6 +166,7 @@ module.exports = buildSchema(`
         status: Boolean
     }
 
+
     type RootQuery {
         postText: [PostText]
         commnets: [Comment]
@@ -164,6 +180,7 @@ module.exports = buildSchema(`
         conn(input: AccountInput): Result
         getUser(user: String!): userResult
         getComments(post: ID!): [Comment]
+        getMessage(room: String): [Message]
     }
     
     type RootMutation { 
@@ -172,7 +189,7 @@ module.exports = buildSchema(`
         createPostImage(input: PostImageInput): Result
         signup(input: UserInput): Result
         login(input: AccountInput): AuthPayload
-        profileImage(input: ProfileImage):  Result
+        profileImage(input: ProfileImage): Result
         like(input: createLike): Result
         deletePost(input: createDeletePost): Result
         updatePassword(input: chnagePassword): AuthPayload
@@ -181,6 +198,7 @@ module.exports = buildSchema(`
         sendCode(input: resend): Result 
         con(input: AccountInput): Result
         getImage(input: imageReq): Result
+        sendMessage(input: sendMsg): Message
         
     }
 
@@ -194,7 +212,6 @@ module.exports = buildSchema(`
         postTextDisLiked: PostText!
         postImageLiked:  PostImage!
         postImageDisLiked: PostImage!
-
     }
 
     schema{

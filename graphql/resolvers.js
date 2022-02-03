@@ -9,10 +9,13 @@ const jwt =  require('jsonwebtoken');
 const { Error } = require('mongoose');
 const nodemailer = require("nodemailer");
 const AWS = require('aws-sdk');
+const Message = require('../model/Message')
+// const {pubsub} = require('./pubsub')
+const {PubSub, withFilter} = require('graphql-subscriptions');
 // return all post owned by  a user in the User document (Table)
 // Required user ID 
 // PostImage && PostText is returned
-
+const pubsub = new PubSub();
 
 //GENERATE RANDOM CODE
 const uniqueId = () => {
@@ -216,6 +219,10 @@ const user = async userId =>{
         throw error
     }
 }
+
+const SEND_MSG = 'SEND_MSG'
+
+
 
 const resolvers = {
     //save User Image Profile (Avatar)
@@ -764,8 +771,7 @@ const resolvers = {
 
             if(args.input.currentPassword){
                 const oldPassword = await bcrypt.compareSync(args.input.currentPassword, accountExist.password)
-                if(!oldPassword)  throw new Error('Password does not match')
-                
+                if(!oldPassword)  throw new Error('Password does not match')  
             }
             
             const hashPassword = await bcrypt.hash(args.input.newPassword, 12);
@@ -933,6 +939,40 @@ const resolvers = {
         } catch (error) {
             throw error
         }
+
+    },
+    // sendMessage: async (args, req) =>{
+
+    //     const message = Message({
+    //         room: args.input.room,
+    //         author: args.input.author,
+    //         body: args.input.body,
+    //         createAt: args.input.createAt
+    //     })
+    //     await message.save()
+    //     return{
+    //         _id: message._id,
+    //         author: user.bind(this, message.author),
+    //         body: message.body,
+    //         createAt: message._doc.createAt 
+    //         //new Date(message._doc.createAt).toDateString()
+    //     }
+    // },
+    getMessage: async (args, req) =>{
+        let room  = args.room 
+        room = room.replace(' ', '')
+       
+        const messages = await Message.find({room: room})
+        console.log('messages');
+        return messages.map(msg =>{
+            return{
+                _id: msg._id,
+                author: user.bind(this, msg.author),
+                body: msg.body,
+                createAt: new Date(msg._doc.createAt).toDateString(),
+                //new Date(message._doc.createAt).toDateString()
+            }
+        })
 
     }
 }
